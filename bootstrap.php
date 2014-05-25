@@ -4,10 +4,7 @@
  * User: Ivan.Ochincenko
  * Date: 09.04.14
  * Time: 15:14
- */ ?>
-
-
-<?php
+ */ 
 function spl_autoload_register_function($class) {
     static $map;
     if (!$map) {
