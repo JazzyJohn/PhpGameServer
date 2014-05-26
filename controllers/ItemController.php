@@ -13,7 +13,7 @@ class ItemController extends BaseController{
        $db = DBHolder::GetDB();
        $sql = 'DELETE FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'" AND   timeend!=0 AND timeend <'.time().'';
        $db->query($sql);
-       $sql = 'SELECT `ingamekey`,`class` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id WHERE game_item.id IN( SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'") OR game_item.free=1';
+       $sql = 'SELECT `ingamekey`,`class`,`guiimage`,`defaultforclass` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id WHERE game_item.id IN( SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'") OR game_item.free=1';
 
         $sqldata =$db->fletch_assoc($db->query($sql));
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items></items>');
@@ -25,6 +25,9 @@ class ItemController extends BaseController{
                     $wepOne   = new SimpleXMLElement('<weapon></weapon>');
                     $wepOne->addChild("gameClass",$element["class"]);
                     $wepOne->addChild("weaponId",$element["ingamekey"]);
+					$wepOne->addChild("textureGUIName",$element["guiimage"]);
+					$wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
+
                     break;
 
             }
