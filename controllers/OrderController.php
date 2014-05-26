@@ -97,8 +97,11 @@ class OrderController extends BaseController{
                                     $sql = "SELECT * FROM `player_opened_gameitem` WHERE uid = '".$receiver_id."' AND itid='".$ourItem["game_item_id"]."'";
                                     $sqldata =$db->fletch_assoc($db->query($sql));
                                     if(isset($sqldata[0])){
-                                        $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".($ourItem["amount"]*86400)." WHERE uid ='".$receiver_id."'AND itid='".$ourItem['game_item_id']."'";
-                                        $db->query($sql);
+                                        if($sqldata[0]["timeend"]!=0){
+                                            $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".($ourItem["amount"]*86400)." WHERE uid ='".$receiver_id."'AND itid='".$ourItem['game_item_id']."'";
+                                            $db->query($sql);
+                                        }
+
                                     }else{
                                         $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$receiver_id."','".( time()+$ourItem["amount"]*86400)."','".$ourItem["game_item_id"]."')";
                                         $db->query($sql);
@@ -169,8 +172,11 @@ class OrderController extends BaseController{
         $sql = "SELECT * FROM `player_opened_gameitem` WHERE uid = '".$input['uid']."' AND itid='".$input['game_item']."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(isset($sqldata[0])){
-            $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".(86400)." WHERE uid ='".$input['uid']."' AND itid='".$input['game_item']."'";
-            $db->query($sql);
+            if($sqldata[0]["timeend"]!=0){
+                $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".(86400)." WHERE uid ='".$input['uid']."' AND itid='".$input['game_item']."'";
+                $db->query($sql);
+            }
+
         }else{
             $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$input['uid']."','".( time()+86400)."','".$input['game_item']."')";
             $db->query($sql);

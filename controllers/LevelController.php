@@ -107,7 +107,12 @@ class LevelController extends BaseController{
 			foreach($sqldata as $element){
 				$sorted_data[$element["class"]] = $element;
 			}
+            $levels_up = array();
 			if(isset($sorted_data[-1])){
+                if($sorted_data[-1]["lvl"]<$data["playerLvl"]){
+                    $levels_up[] = array("class"=>-1,"lvl"=>$data["playerLvl"]);
+                }
+
 				$sql = "UPDATE `level_player` SET exp='".$data["playerExp"]."', lvl ='".$data["playerLvl"]."'  WHERE uid = '".$data["uid"]."' AND class = -1;";
 			}else{
 				$sql = "INSERT INTO `level_player`  (uid,exp,lvl,class) VALUES ('".$data["uid"]."','".$data["playerExp"]."','".$data["playerLvl"]."',-1);";
@@ -116,13 +121,17 @@ class LevelController extends BaseController{
 			$db->query($sql);
 			for($i = 0;$i<self::$CLASSCOUNT =4;$i++){
 				if(isset($sorted_data[$i])){
-					$sql = "UPDATE `level_player` SET exp='".$data["classExp"][$i]."', lvl ='".$data["classLvl"][$i]."'  WHERE uid = '".$data["uid"]."' AND class=".$i.";";
+                    if($sorted_data[$i]["lvl"]<$data["classLvl"][$i]){
+                        $levels_up[] = array("class"=>$i,"lvl"=>$data["classLvl"][$i]);
+                    }
+
+                    $sql = "UPDATE `level_player` SET exp='".$data["classExp"][$i]."', lvl ='".$data["classLvl"][$i]."'  WHERE uid = '".$data["uid"]."' AND class=".$i.";";
 				}else{
 					$sql = "INSERT INTO `level_player`  (uid,exp,lvl,class) VALUES ('".$data["uid"]."','".$data["classExp"][$i]."','".$data["classLvl"][$i]."',$i);";
 				}
 				$db->query($sql);	
 			}
-			  $token = self::getVKAUTH();
+			$token = self::getVKAUTH();
 			Logger::instance()->write($token );
 			$VK = new vkapi(self::$api_id, self::$secret_key);
 			
@@ -131,6 +140,11 @@ class LevelController extends BaseController{
             $resp = $VK->api('secure.setUserLevel', array('uid'=>$data["uid"],'level'=>$data["playerLvl"],"client_secret"=>$token));
 
 			Logger::instance()->write(print_r($resp,true) );
+
+            if(count($levels_up )>0){
+                LevelUp::init($levels_up,$data["uid"]);
+
+            }
 				
 	}
 

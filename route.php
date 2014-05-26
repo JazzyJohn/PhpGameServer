@@ -30,3 +30,5 @@ Router::addRoute("/kaspi/loaditems","ItemController");
 Router::addRoute("/kaspi/loadshop","ItemController");
 
 Router::addRoute("/kaspi/buyItem","ItemController");
+
+Router::addRoute("/kaspi/saveitem","ItemController");

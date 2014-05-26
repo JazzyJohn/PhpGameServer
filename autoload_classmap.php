@@ -16,4 +16,5 @@ return array(
     'DBHolder' => dirname(__FILE__) . '/classes/DbHolder.php',
 	'Logger' => dirname(__FILE__) . '/classes/Logger.php',
     'vkapi' => dirname(__FILE__) . '/classes/vkapi.class.php',
+    'LevelUp' => dirname(__FILE__) . '/classes/LevelUp.php',
 );

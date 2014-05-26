@@ -19,6 +19,7 @@ class ItemController extends BaseController{
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items></items>');
 
         $domitems = dom_import_simplexml($xmlitems);
+
         foreach($sqldata as $element){
             switch($element["type"]){
                 case 0:
@@ -26,7 +27,7 @@ class ItemController extends BaseController{
                     $wepOne->addChild("gameClass",$element["class"]);
                     $wepOne->addChild("weaponId",$element["ingamekey"]);
 					$wepOne->addChild("textureGUIName",$element["guiimage"]);
-					$wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
+                    $wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
 
                     break;
 
@@ -36,10 +37,67 @@ class ItemController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+        $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
+
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(isset($sqldata[0])){
+            $settings = json_decode($sqldata[0]["default_weapon"],true);
+            foreach($settings as $class){
+                foreach($class as $element){
+                    $wepOne   = new SimpleXMLElement('<default></default>');
+                    $wepOne->addChild("gameClass",$element["class"]);
+                    $wepOne->addChild("weaponId",$element["ingamekey"]);
+                }
+            }
+            $domone  = dom_import_simplexml($wepOne);
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
+        }
+
 
         echo $xmlitems->asXml();
     }
+    public function saveitem(){
+        $data =$_REQUEST;
+        $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(isset($sqldata[0])){
+            $iscreate = false;
+            $settings = json_decode($sqldata[0]["default_weapon"],true);
+        }else{
+            $iscreate = true;
+            $settings = array();
+        }
+        if( isset($settings[$data["class"]])){
+         unset($settings[$data["class"]]) ;
+            $settings[$data["class"]]= array();
+        }
+        foreach($data["default"] as $element){
+            if($element==-1){
+                continue;
+            }
+            $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$element);
+        }
+        if( isset($settings[$data["robotclass"]])){
+            unset($settings[$data["robotclass"]]) ;
+            $settings[$data["robotclass"]]= array();
+        }
+        foreach($data["defaultrobot"] as $element){
+            if($element==-1){
+                continue;
+            }
+            $settings[$data["robotclass"]][] = array("class"=>$data["robotclass"],"weaponId"=>$element);
+        }
+        $settings = json_encode($settings);
+        if($iscreate){
+            $sql = ' INSERT INTO `player_setting`  (`uid,`default_weapon`) VALUES ("'.$data["uid"].'","'.$settings.'")';
+        }else{
+            $sql = ' UPDATE `player_setting` SET "default_weapon` = "'.$settings.'" WHERE uid ="'.$data["uid"].'"';
+        }
+        $db->query($sql);
 
+    }
     public function loadshop(){
 
         $data =$_REQUEST;
