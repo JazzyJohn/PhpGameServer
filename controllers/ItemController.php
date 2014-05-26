@@ -41,17 +41,21 @@ class ItemController extends BaseController{
 
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(isset($sqldata[0])){
-            $settings = json_decode($sqldata[0]["default_weapon"],true);
+            $settings = json_decode(stripslashes($sqldata[0]["default_weapon"]),true);
+		//print_r($settings);
             foreach($settings as $class){
+			
                 foreach($class as $element){
                     $wepOne   = new SimpleXMLElement('<default></default>');
                     $wepOne->addChild("gameClass",$element["class"]);
-                    $wepOne->addChild("weaponId",$element["ingamekey"]);
+                    $wepOne->addChild("weaponId",$element["weaponId"]);
+				    $domone  = dom_import_simplexml($wepOne);
+					$domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+					   $domitems->appendChild($domone);
                 }
             }
-            $domone  = dom_import_simplexml($wepOne);
-            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
-            $domitems->appendChild($domone);
+          
+         
         }
 
 
@@ -59,6 +63,7 @@ class ItemController extends BaseController{
     }
     public function saveitem(){
         $data =$_REQUEST;
+		//print_r($data);
         $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -79,6 +84,7 @@ class ItemController extends BaseController{
             }
             $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$element);
         }
+		$data["robotclass"]+=5;
         if( isset($settings[$data["robotclass"]])){
             unset($settings[$data["robotclass"]]) ;
             $settings[$data["robotclass"]]= array();
@@ -89,11 +95,13 @@ class ItemController extends BaseController{
             }
             $settings[$data["robotclass"]][] = array("class"=>$data["robotclass"],"weaponId"=>$element);
         }
-        $settings = json_encode($settings);
+		//	print_r($data);
+		//print_r($settings);
+        $settings = addslashes(json_encode($settings));
         if($iscreate){
-            $sql = ' INSERT INTO `player_setting`  (`uid,`default_weapon`) VALUES ("'.$data["uid"].'","'.$settings.'")';
+            $sql = ' INSERT INTO `player_setting`  (`uid`,`default_weapon`) VALUES ("'.$data["uid"].'","'.$settings.'")';
         }else{
-            $sql = ' UPDATE `player_setting` SET "default_weapon` = "'.$settings.'" WHERE uid ="'.$data["uid"].'"';
+            $sql = ' UPDATE `player_setting` SET `default_weapon` = "'.$settings.'" WHERE uid ="'.$data["uid"].'"';
         }
         $db->query($sql);
 
