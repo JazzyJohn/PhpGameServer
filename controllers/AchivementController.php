@@ -4,7 +4,7 @@ class AchivementController extends BaseController{
 
 	public function loadachive(){
 		header('Content-type: text/xml');
-		$sql = "SELECT id,achievement_list.name,description, achivement_params.name AS paramname,needvalue FROM `achievement_list` INNER JOIN `achivement_params` ON achievement_list.id=achivement_params.aid";
+		$sql = "SELECT id,achievement_list.name,description, icon,achivement_params.name AS paramname,needvalue FROM `achievement_list` INNER JOIN `achivement_params` ON achievement_list.id=achivement_params.aid";
 		$data =$_REQUEST;
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -36,6 +36,7 @@ class AchivementController extends BaseController{
 			$achOne->addChild("id",$element["id"]);
 			$achOne->addChild("name",$element["name"]);
 			$achOne->addChild("description",$element["description"]);
+            $achOne->addChild("icon",$element["icon"]);
 			if(in_array($element["id"],$open)){
 				$achOne->addChild("open","true");
 			}else{
