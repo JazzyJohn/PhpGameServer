@@ -27,6 +27,7 @@ class ItemController extends BaseController{
                     $wepOne->addChild("gameClass",$element["class"]);
                     $wepOne->addChild("weaponId",$element["ingamekey"]);
 					$wepOne->addChild("textureGUIName",$element["guiimage"]);
+
                     $wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
 
                     break;

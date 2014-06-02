@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                        u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.30.unity3d?hotfix");
+                        u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.35.unity3d");
 
                   });
 
