@@ -48,9 +48,9 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                        u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.35.unity3d");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.37.unity3d?hotfix");
 
-                  });
+               });
 
 	
 
@@ -85,8 +85,10 @@ function SayMyUid(){
 					
 }
 function AchivmenUnlock(mess){
+    jQuery("#unityPlayer")[0].hide();
  VK.api("wall.post", {message:"Разблокировано достижение: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
- console.log(data); 
+ console.log(data);
+     jQuery("#unityPlayer")[0].show();
  });
  }
 function ItemBuy(item){
@@ -94,20 +96,21 @@ function ItemBuy(item){
         type: 'item',
         item: item
     };
+    jQuery("#unityPlayer")[0].hide();
     VK.callMethod('showOrderBox', params);
 }
 
 VK.addCallback('onOrderSuccess', function(order_id) {
     u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
-
+    jQuery("#unityPlayer")[0].show();
 });
 VK.addCallback('onOrderFail', function() {
 
-
+    jQuery("#unityPlayer")[0].show();
 });
 VK.addCallback('onOrderCancel', function() {
 
-
+    jQuery("#unityPlayer")[0].show();
 });
 						
 </script>
