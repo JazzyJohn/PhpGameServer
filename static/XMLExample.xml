@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<allnews>
+	<new>
+	<title> СУПЕР НОВОСТЬ 1</title>
+	<img>/gameRes/GUIAchievment/8upW-HWVJWc.jpg</img>
+	<titleX>50</titleX>
+	<titleY>20</titleY>
+	</new>
+	<new>
+	<title> СУПЕР НОВОСТЬ 2</title>
+	<img>/gameRes/GUIAchievment/8upW-HWVJWc.jpg</img>
+	<titleX>30</titleX>
+	<titleY>40</titleY>
+	</new>
+</allnews>

@@ -70,7 +70,7 @@ class OrderController extends BaseController{
 
                         }
                         $order_id = intval($input['order_id']);
-                        $receiver_id  = intval($input['receiver_id ']);
+                        $receiver_id  = intval($input['receiver_id']);
                         $sql = "SELECT * FROM `items_order` WHERE order_id = '".$order_id."'";
                         $sqldata =$db->fletch_assoc($db->query($sql));
                         if(isset($sqldata[0])){
@@ -86,11 +86,11 @@ class OrderController extends BaseController{
                             $sqldata =$db->fletch_assoc($db->query($sql));
                             $response['response'] = array(
                                 'order_id' => $order_id,
-                                'app_order_id' => $sqldata[0]["app_order_id	"],
+                                'app_order_id' => $sqldata[0]["last_insert_id()"],
                             );
-                            switch($item["type"]){
+                            switch($ourItem["type"]){
                                 case 0:
-                                    $sql = "UPDATE statistic SET gold = gold +".$ourItem["amount"]." WHERE uid =`".$receiver_id."`";
+                                    $sql = "UPDATE statistic SET gold = gold +".$ourItem["amount"]." WHERE uid ='".$receiver_id."'";
                                     $db->query($sql);
                                     break;
                                 case 1:
@@ -124,10 +124,16 @@ class OrderController extends BaseController{
              }
         }
 
-
+    echo json_encode($response);
 	
 	}
 
+    public function useItem(){
+        $input = $_REQUEST;
+        $db = DBHolder::GetDB();
+        $sql = "UPDATE player_game_items_amount SET amount = amount -1 WHERE uid ='".$input['uid']."' and id IN (".$input['game_item'].")";
+        $db->query($sql);
+    }
     public function buyItem(){
         $input = $_REQUEST;
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
@@ -149,6 +155,14 @@ class OrderController extends BaseController{
 
         if($input["forGold"]==true){
             $price= $item["gold_cost"];
+            if($user["gold"]<  $price){
+                $xmlresult->addChild("error",2);
+                $xmlresult->addChild("errortext","not enough money ");
+                echo $xmlresult->asXML();
+                return;
+            }
+            $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
+            $db->query($sql);
         }else{
             $price= $item["cash_cost"];
             if($item["cash_cost"]==0){
@@ -157,30 +171,43 @@ class OrderController extends BaseController{
                 echo $xmlresult->asXML();
                 return;
             }
-
-        }
-        if($user["cash"]<  $price)        {
-            $xmlresult->addChild("error",2);
-            $xmlresult->addChild("errortext","not enough money ");
-            echo $xmlresult->asXML();
-            return;
-
-        }
-        $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,currency) VALUES ('".$input['uid']."','".$input['game_item']."','1','".time()."','".($input["forGold"]==true?1:0)."')";
-        $db->query($sql);
-
-        $sql = "SELECT * FROM `player_opened_gameitem` WHERE uid = '".$input['uid']."' AND itid='".$input['game_item']."'";
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        if(isset($sqldata[0])){
-            if($sqldata[0]["timeend"]!=0){
-                $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".(86400)." WHERE uid ='".$input['uid']."' AND itid='".$input['game_item']."'";
-                $db->query($sql);
+            if($user["cash"]<  $price){
+                $xmlresult->addChild("error",2);
+                $xmlresult->addChild("errortext","not enough money ");
+                echo $xmlresult->asXML();
+                return;
             }
-
-        }else{
-            $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$input['uid']."','".( time()+86400)."','".$input['game_item']."')";
+            $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
             $db->query($sql);
         }
+
+        $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,date,currency) VALUES ('".$input['uid']."','".$input['game_item']."','1','".time()."','".($input["forGold"]==true?1:0)."')";
+        $db->query($sql);
+        switch($item["type"]){
+            case 0:
+                $sql = "SELECT * FROM `player_opened_gameitem` WHERE uid = '".$input['uid']."' AND itid='".$input['game_item']."'";
+                $sqldata =$db->fletch_assoc($db->query($sql));
+                if(isset($sqldata[0])){
+                    if($sqldata[0]["timeend"]!=0){
+                        $sql = "UPDATE `player_opened_gameitem`  SET timeend = timeend +".(86400)." WHERE uid ='".$input['uid']."' AND itid='".$input['game_item']."'";
+                        $db->query($sql);
+                    }
+
+                }else{
+                    $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$input['uid']."','".( time()+86400)."','".$input['game_item']."')";
+                    $db->query($sql);
+                }
+                break;
+
+            case 1:
+                $sql = "INSERT INTO player_game_items_amount (`uid`,`id`,`amount`) VALUES('".$input['uid']."','".$input['game_item']."',1)
+        ON DUPLICATE KEY UPDATE amount = amount + 1   ;";
+
+                $db->query($sql);
+                break;
+
+        }
+
         $xmlresult->addChild("error",0);
         $xmlresult->addChild("errortext","");
         echo $xmlresult->asXML();

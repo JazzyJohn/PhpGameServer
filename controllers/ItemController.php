@@ -10,8 +10,9 @@ class ItemController extends BaseController{
 
     public function loaditems(){
        $data =$_REQUEST;
+       header('Content-type: text/xml');
        $db = DBHolder::GetDB();
-       $sql = 'DELETE FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'" AND   timeend!=0 AND timeend <'.time().'';
+       $sql = 'DELETE FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'" AND   timeend!=-1 AND timeend <'.time().'';
        $db->query($sql);
        $sql = 'SELECT `ingamekey`,`class`,`guiimage`,`defaultforclass` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id WHERE game_item.id IN( SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'") OR game_item.free=1';
 
@@ -32,11 +33,68 @@ class ItemController extends BaseController{
 
                     break;
 
+
             }
 
             $domone  = dom_import_simplexml($wepOne);
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
+        }
+        $sql = 'SELECT * FROM `player_game_items_amount` WHERE uid="'.$data["uid"].'"';
+        $amount =array();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        foreach($sqldata as $element){
+            $amount[$element["id"]]  = $element['amount'];
+
+        }
+        $sql = 'SELECT game_item.id,`cash_cost`,`gold_cost`,`value`,`property`,`effecttype`, game_item_property.type,`name`,`guiimage` FROM `game_item`INNER JOIN `game_item_property` ON game_item_property.id=game_item.id WHERE game_item.type = 1';
+
+        $stims = array();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        foreach($sqldata as $element){
+            if(!isset(  $stims[$element["id"]])){
+                $stims[$element["id"]]["name"] =$element["name"];
+                $stims[$element["id"]]["normalPrice"] =intval($element["cash_cost"]);
+                $stims[$element["id"]]["goldPrice"] =intval($element["gold_cost"]);
+                $stims[$element["id"]]["amount"] =isset( $amount[$element["id"]] )?$amount[$element["id"]]:0;
+                $stims[$element["id"]]["textureGUIName"] = $element["guiimage"] ;
+            }
+            $tar = array();
+            $tar["characteristic"] = $element["property"];
+            $tar["type"] = $element["type"];
+            $tar["value"] = $element["value"];
+            $tar["effecttype"] = $element["effecttype"];
+            $stims[$element["id"]]["effects"][] =$tar;
+
+        }
+
+        foreach($stims as $key=>$stim){
+
+            $stimOne   = new SimpleXMLElement('<stim></stim>');
+            $stimOne->addChild("amount",$stim["amount"]);
+            $stimOne->addChild("textureGUIName",$stim["textureGUIName"]);
+            $stimOne->addChild("name",$stim["name"]);
+            $stimOne->addChild("normalPrice",$stim["normalPrice"]);
+            $stimOne->addChild("goldPrice",$stim["goldPrice"]);
+            $stimOne->addChild("mysqlId",$key);
+            $domone  = dom_import_simplexml($stimOne);
+
+            foreach($stim["effects"] as $effect){
+                $effectOne   = new SimpleXMLElement('<effect></effect>');
+                $effectOne->addChild("characteristic",$effect["characteristic"]);
+                $effectOne->addChild("type",$effect["type"]);
+
+                $effectOne->addChild("effecttype",$effect["effecttype"]);
+                $effectOne->addChild("value",$effect["value"]);
+                $domoneparam  = dom_import_simplexml($effectOne);
+                $domoneparam  = $domone->ownerDocument->importNode($domoneparam, TRUE);
+                $domone->appendChild($domoneparam);
+            }
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
+
+
+
         }
         $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
 

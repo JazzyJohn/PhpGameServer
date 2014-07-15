@@ -32,7 +32,7 @@ class LevelUp {
 
     public function openItem($itemId){
         $db = DBHolder::GetDB();
-        $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$this->uid."','0','".$itemId."')";
+        $sql = "INSERT INTO `player_opened_gameitem`   (uid,timeend,itid) VALUES ('".$this->uid."','-1','".$itemId."')";
         $db->query($sql);
     }
 } 

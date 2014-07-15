@@ -3,7 +3,7 @@
     <head>
   <style>
    body{
-    background-color: #ffffff; /* Цвет фона веб-страницы */
+    background-color: #ffffff; /* пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ */
    } 
    </style>
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
@@ -48,8 +48,29 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.37.unity3d?hotfix");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.45.unity3d?ver2");
+                        VK.addCallback('onOrderSuccess', function(order_id) {
+                            u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
 
+                        });
+                        VK.addCallback('onOrderFail', function() {
+
+
+                        });
+                        VK.addCallback('onOrderCancel', function() {
+
+
+                        });
+                        VK.addCallback("onWindowBlur", onWindowBlur);
+                        function onWindowBlur() {
+                            document.getElementById('unityPlayer').style.visibility = 'hidden';
+                            document.getElementById('resumebtn').style.visibility = 'visible';
+                        }
+                        VK.addCallback("onWindowFocus", onWindowFocus);
+                        function onWindowFocus() {
+                            document.getElementById('unityPlayer').style.visibility = 'visible';
+                            document.getElementById('resumebtn').style.visibility = 'hidden';
+                        }
                });
 
 	
@@ -63,9 +84,10 @@ function SayMyName(){
                     answer = data.response[0];
 					//console.log(answer);        
                         u.getUnity().SendMessage("MainPlayer", "SetName", answer.first_name+" "+answer.last_name);
-						
-						
-                     });
+
+
+
+             });
 }
 function SayMyUid(){
                     
@@ -85,10 +107,10 @@ function SayMyUid(){
 					
 }
 function AchivmenUnlock(mess){
-    jQuery("#unityPlayer")[0].hide();
- VK.api("wall.post", {message:"Разблокировано достижение: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
+   
+ VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
  console.log(data);
-     jQuery("#unityPlayer")[0].show();
+   
  });
  }
 function ItemBuy(item){
@@ -96,23 +118,12 @@ function ItemBuy(item){
         type: 'item',
         item: item
     };
-    jQuery("#unityPlayer")[0].hide();
+ 
     VK.callMethod('showOrderBox', params);
 }
 
-VK.addCallback('onOrderSuccess', function(order_id) {
-    u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
-    jQuery("#unityPlayer")[0].show();
-});
-VK.addCallback('onOrderFail', function() {
 
-    jQuery("#unityPlayer")[0].show();
-});
-VK.addCallback('onOrderCancel', function() {
 
-    jQuery("#unityPlayer")[0].show();
-});
-						
 </script>
 </head>
 <body >
@@ -123,9 +134,13 @@ VK.addCallback('onOrderCancel', function() {
 			<img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />
 		</a>
 	</div>
+
+
 </div>
-
-
+ <div id="resumebtn" style="height:700px; position: absolute; top:150px;visibility: hidden;">
+     <img src="/kaspi/static/PauseScreen.jpg"  width="960px"  height="700px"  />
+ </div>
+ <a target="_blank" href="http://vk.com/juggerfall"><img  width="960px" height="100px" src="/kaspi/static/alphascreen.jpg" /></a>
 
 </body>
 </html>

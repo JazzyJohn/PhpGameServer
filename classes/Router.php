@@ -24,11 +24,14 @@ class Router{
     }
     public function run($url){
 		Logger::instance()->write($url);
+        $url = explode("?",$url);
+        $url = $url[0];
+        //echo $url;
         if(isset($this->map[$url])){
             $classname = $this->map[$url];
             $controller = new $classname();
         }else{
-            echo "404";
+            echo $url." 404";
             return;
         }
         Logger::instance()->write($classname);
@@ -40,8 +43,9 @@ class Router{
             }
         }
 		$url =explode("/",$url);$url=$url[count($url)-1];
+
         if(in_array($url,$func)){
-			
+
             $controller->{$url}();
             return;
         }
