@@ -13,6 +13,8 @@ return array(
     'AdminController' => dirname(__FILE__) . '/controllers/AdminController.php',
 	'AchivementController' => dirname(__FILE__) . '/controllers/AchivementController.php',
     'OrderController' => dirname(__FILE__) . '/controllers/OrderController.php',
+    'LoreController' => dirname(__FILE__) . '/controllers/LoreController.php',
+
     'NewsController' => dirname(__FILE__) . '/controllers/NewsController.php',
 		'LevelController' => dirname(__FILE__) . '/controllers/LevelController.php',
 			'ItemController' => dirname(__FILE__) . '/controllers/ItemController.php',

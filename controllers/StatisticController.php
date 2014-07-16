@@ -15,12 +15,12 @@ class StatisticController extends BaseController{
     public function killedBy(){
         $data =$_REQUEST;
         $sql = "INSERT INTO statistic (`uid`,`name`,`death`) VALUES('".$data["uid"]."','".$data["name"]."',1)
-        ON DUPLICATE KEY UPDATE death = death+1   ;";
+        ON DUPLICATE KEY UPDATE death = death + 1   ;";
         $db = DBHolder::GetDB();
         $db->query($sql);
         if(isset($data["inbot"])&&$data["inbot"]==true){
             $sql = "INSERT INTO statistic (`uid`,`name`,`robotkill`) VALUES(".$data["killeruid"].",'".$data["killername"]."',1)
-            ON DUPLICATE KEY UPDATE robotkill = robotkill+1   ;";
+            ON DUPLICATE KEY UPDATE robotkill = robotkill + 1    ;";
         }else{
             $sql = "INSERT INTO statistic (`uid`,`name`,`killCnt`) VALUES(".$data["killeruid"].",'".$data["killername"]."',1)
             ON DUPLICATE KEY UPDATE `killCnt` =  `killCnt` + 1   ;";
@@ -28,7 +28,7 @@ class StatisticController extends BaseController{
         $db->query($sql);
         if(isset($data["assistuid"])){
             $sql = "INSERT INTO statistic (`uid`,`name`,`assist`) VALUES(".$data["assistuid"].",'".$data["assistname"]."',1)
-                ON DUPLICATE KEY UPDATE assist = assist+1   ;";
+                ON DUPLICATE KEY UPDATE assist = assist + 1   ;";
             $db->query($sql);
         }
     }
