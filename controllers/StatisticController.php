@@ -51,9 +51,9 @@ class StatisticController extends BaseController{
 		
         $db = DBHolder::GetDB();
         $db->query($sql);
-       $this->returnAllStats();
+       self::returnAllStats();
     }
-    public function returnAllStats(){
+    public static function returnAllStats(){
         $data =$_REQUEST;
         $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
         $db = DBHolder::GetDB();

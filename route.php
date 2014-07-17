@@ -48,3 +48,7 @@ Router::addRoute("/kaspi/savenews","AdminController");
 Router::addRoute("/kaspi/allnews","NewsController");
 
 Router::addRoute("/kaspi/order_call_back","OrderController");
+
+Router::addRoute("/kaspi/loadmoneyreward","RewardController");
+
+Router::addRoute("/kaspi/syncmoneyreward","RewardController");
