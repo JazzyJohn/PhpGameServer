@@ -48,12 +48,27 @@ class DBHolder
         public function fletch_assoc($rid){
             $answer = array();
             while($data = mysql_fetch_assoc($rid)){
-                $answer[]= $data;
+                $tar= array();
+                foreach($data as $key=>$element){
+                    $tar[$key] = stripslashes($element);
+                }
+                $answer[]= $tar;
             }
             Logger::instance()->write(print_r($answer,true));
             return $answer;
         }
 
 
+        public static function secure_request($data){
+                $answer = array();
+                foreach($data as $key=>$element){
+                    if(is_array($element)){
+                        $answer[$key]= self::secure_request($element);
+                    }else{
+                        $answer[$key]= addslashes($element);
+                    }
+                }
+                return $answer;
 
+        }
 }

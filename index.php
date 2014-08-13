@@ -12,6 +12,7 @@ require_once("route.php");
 
 $uri = $_SERVER["REQUEST_URI"];
 
+$_REQUEST = DBHolder::secure_request($_REQUEST);
 if(file_exists($uri)){
     require_once($uri);
 }else{
