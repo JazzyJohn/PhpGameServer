@@ -148,4 +148,41 @@ class LevelController extends BaseController{
 				
 	}
 
+    public function spendSkillPoint(){
+        $data =$_REQUEST;
+        $db = DBHolder::GetDB();
+
+        $sql = "UPDATE `player_skill` SET `skills`=\n"
+            . "\n"
+            . "CASE \n"
+            . " WHEN (`skills`=\"\" AND `skillpoint`>=1) THEN \"".$data["id"]."\"\n"
+            . " WHEN (`skills`<>\"\" AND `skillpoint`>=1)THEN CONCAT(`skills`,\",".$data["id"]."\")\n"
+            . " ELSE `skills`\n"
+            . "END\n"
+            . ",\n"
+            . "`skillpoint` = \n"
+            . "\n"
+            . "CASE \n"
+            . " WHEN `skillpoint`>=1 THEN `skillpoint`-1\n"
+            . " ELSE `skillpoint`\n"
+            . "END\n"
+            . " WHERE uid =\"".$data["uid"]."\"";
+        $db->query($sql);
+
+        $sql = "SELECT * FROM  `player_skill`  WHERE uid =\"".$data["uid"]."\"";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $xmlresult= new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+						<spendskill>
+						</spendskill>');
+        $allSkill =explode(",",$sqldata[0]["skill"]);
+        if(in_array($data["id"],$allSkill)){
+            $xmlresult->addChild("open","true");
+            $xmlresult->addChild("skillpoint",$sqldata[0]["skillpoint"]);
+        }else{
+            $xmlresult->addChild("open","false");
+        }
+        header('Content-type: text/xml');
+        echo $xmlresult->asXml();
+    }
+
 }
