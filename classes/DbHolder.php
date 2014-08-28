@@ -8,11 +8,11 @@
 
 class DBHolder
 {
-        private static $base_name  = "bh51020_kaspigame_db";
+        private static $base_name  = "db1043119_juggerfall";
 
-        private static $base_host  = "91.219.195.42";
+        private static $base_host  = "192.168.137.101";
 
-        private static $base_user  ="bh51020_kaspi";
+        private static $base_user  ="u1043119_kaspi";
 
         private static $base_psw  ="I8P&TZ(?qNzR";
 
@@ -41,7 +41,7 @@ class DBHolder
 			$error =mysql_error ($this->link);
 			if($error!=""){
                 Logger::instance()->write($error);
-				echo $error;
+				//echo $error;
 			}
 			return $rid;
         }

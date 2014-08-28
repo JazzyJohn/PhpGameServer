@@ -1,17 +1,10 @@
-﻿<?php
-/**
- * Created by PhpStorm.
- * User: Ivan.Ochincenko
- * Date: 09.04.14
- * Time: 15:58
- */
+<?
 class StatisticController extends BaseController{
-  
-    public function before(){
+    /*public function before(){
                 if(!isset($_REQUEST["authkey"])||$_REQUEST["authkey"]!=self::$unity_key){
                     return false;
                 }
-    }
+    }*/
     public function killedBy(){
         $data =$_REQUEST;
         $sql = "INSERT INTO statistic (`uid`,`name`,`death`) VALUES('".$data["uid"]."','".$data["name"]."',1)
@@ -45,13 +38,15 @@ class StatisticController extends BaseController{
     }
 
     public function addUser(){
+
         $data =$_REQUEST;
-		file_put_contents("log.txt",mb_detect_encoding($data["name"]));
+
+		///file_put_contents("log.txt",mb_detect_encoding($data["name"]));
         $sql = "INSERT INTO statistic (`uid`,`name`) VALUES ('".$data["uid"]."','".$data["name"]."')  ON DUPLICATE KEY UPDATE ingameenter = ingameenter+1   ;";
 		
         $db = DBHolder::GetDB();
         $db->query($sql);
-       self::returnAllStats();
+        self::returnAllStats();
     }
     public static function returnAllStats(){
         $data =$_REQUEST;
@@ -59,12 +54,13 @@ class StatisticController extends BaseController{
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         $sqldata = $sqldata[0];
+       // print_r($sqldata);
+        header('Content-type: text/xml');
         $xmlprofile = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
-                            <player>
-							</player>');
-        $xmlprofile->addChild('uid',$sqldata['uid']);
-        $xmlprofile->addChild('name',$sqldata['name']);
-        $xmlprofile->addChild('kill',$sqldata['kill']);
+                            <player></player>');
+        $xmlprofile->addChild('uid',$sqldata['UID']);
+        $xmlprofile->addChild('name',$sqldata['NAME']);
+        $xmlprofile->addChild('kill',$sqldata['killCnt']);
         $xmlprofile->addChild('death',$sqldata['death']);
         $xmlprofile->addChild('assist',$sqldata['assist']);
         $xmlprofile->addChild('robotkill',$sqldata['robotkill']);

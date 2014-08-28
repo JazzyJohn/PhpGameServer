@@ -56,7 +56,7 @@
                     obj.textX =x/ $("#maintext").parent().width()*100;
                     obj.textY =y/ $("#maintext").parent().height()*100;
                     $.ajax({
-                        url:'/kaspi/savenews',
+                        url:'/savenews',
                         data:obj,
                         method:"POST"
 
@@ -68,14 +68,14 @@
     </script>
 </head>
 <body>
-<a href="/kaspi/listofnews">К списку</a></br>
+<a href="/listofnews">К списку</a></br>
 Текст: <textarea id="input_text"><?=$new["text"]?></textarea></br>
 Font Size:<span id="fontvalue"></span> <div id="slider" style="width: 50%" ></div>
 Font Color:<input id="fontcolor" value="<?=$new["color"]==""?"000000":$new["color"]?>"/><br/>
 <br/>
 <br/>
 <div id="maindiv" >
-    <img  id="maindiv" src="/kaspi/<?=$new["image"]?>"/>
+    <img  id="maindiv" src="<?=$new["image"]?>"/>
     <span id="maintext" style="display:block;width: 200px;" ><?=$new["text"]?></span>
 
 </div>

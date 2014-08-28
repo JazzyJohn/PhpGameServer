@@ -40,6 +40,7 @@ class ItemController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+
         $sql = 'SELECT * FROM `player_game_items_amount` WHERE uid="'.$data["uid"].'"';
         $amount =array();
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -47,24 +48,18 @@ class ItemController extends BaseController{
             $amount[$element["id"]]  = $element['amount'];
 
         }
-        $sql = 'SELECT game_item.id,`cash_cost`,`gold_cost`,`value`,`property`,`effecttype`, game_item_property.type,`name`,`guiimage` FROM `game_item`INNER JOIN `game_item_property` ON game_item_property.id=game_item.id WHERE game_item.type = 1';
+        $sql = 'SELECT * FROM `game_item` WHERE game_item.type = 1';
 
         $stims = array();
         $sqldata =$db->fletch_assoc($db->query($sql));
         foreach($sqldata as $element){
-            if(!isset(  $stims[$element["id"]])){
-                $stims[$element["id"]]["name"] =$element["name"];
-                $stims[$element["id"]]["normalPrice"] =intval($element["cash_cost"]);
-                $stims[$element["id"]]["goldPrice"] =intval($element["gold_cost"]);
-                $stims[$element["id"]]["amount"] =isset( $amount[$element["id"]] )?$amount[$element["id"]]:0;
-                $stims[$element["id"]]["textureGUIName"] = $element["guiimage"] ;
-            }
-            $tar = array();
-            $tar["characteristic"] = $element["property"];
-            $tar["type"] = $element["type"];
-            $tar["value"] = $element["value"];
-            $tar["effecttype"] = $element["effecttype"];
-            $stims[$element["id"]]["effects"][] =$tar;
+
+            $stims[$element["id"]]["name"] =$element["name"];
+            $stims[$element["id"]]["normalPrice"] =intval($element["cash_cost"]);
+            $stims[$element["id"]]["goldPrice"] =intval($element["gold_cost"]);
+            $stims[$element["id"]]["amount"] =isset( $amount[$element["id"]] )?$amount[$element["id"]]:0;
+            $stims[$element["id"]]["textureGUIName"] = $element["guiimage"] ;
+            $stims[$element["id"]]["buffId"] = $element["ingamekey"] ;
 
         }
 
@@ -77,23 +72,31 @@ class ItemController extends BaseController{
             $stimOne->addChild("normalPrice",$stim["normalPrice"]);
             $stimOne->addChild("goldPrice",$stim["goldPrice"]);
             $stimOne->addChild("mysqlId",$key);
+            $stimOne->addChild("buffId",$key);
             $domone  = dom_import_simplexml($stimOne);
 
-            foreach($stim["effects"] as $effect){
-                $effectOne   = new SimpleXMLElement('<effect></effect>');
-                $effectOne->addChild("characteristic",$effect["characteristic"]);
-                $effectOne->addChild("type",$effect["type"]);
 
-                $effectOne->addChild("effecttype",$effect["effecttype"]);
-                $effectOne->addChild("value",$effect["value"]);
-                $domoneparam  = dom_import_simplexml($effectOne);
-                $domoneparam  = $domone->ownerDocument->importNode($domoneparam, TRUE);
-                $domone->appendChild($domoneparam);
-            }
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
 
 
+
+        }
+        $sql =  "SELECT * FROM `buff` ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        foreach($sqldata as $effect){
+            $effectOne   = new SimpleXMLElement('<buff></buff>');
+            $effectOne->addChild("characteristic",$effect["property"]);
+            $effectOne->addChild("type",$effect["type"]);
+
+            $effectOne->addChild("effecttype",$effect["effecttype"]);
+            $effectOne->addChild("value",$effect["value"]);
+            $effectOne->addChild("buffId",$effect["id"]);
+            $domone  = dom_import_simplexml($effectOne);
+
+
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
 
         }
         $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';

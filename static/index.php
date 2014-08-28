@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/kaspi/static/builds0.0.45.unity3d?ver2");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.2.1.unity3d?fix");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                             u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
 
@@ -127,7 +127,7 @@ function ItemBuy(item){
 </script>
 </head>
 <body >
- <a target="_blank" href="https://vk.com/page-69575283_47003869"><img src="/kaspi/static/help.png" /></a>
+ <a target="_blank" href="https://vk.com/page-69575283_47003869"><img src="/static/help.png" /></a>
   <div id="unityPlayer" style="height:700px;">
 	<div class="missing">
 		<a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
@@ -138,9 +138,9 @@ function ItemBuy(item){
 
 </div>
  <div id="resumebtn" style="height:700px; position: absolute; top:150px;visibility: hidden;">
-     <img src="/kaspi/static/PauseScreen.jpg"  width="960px"  height="700px"  />
+     <img src="/static/PauseScreen.jpg"  width="960px"  height="700px"  />
  </div>
- <a target="_blank" href="http://vk.com/juggerfall"><img  width="960px" height="100px" src="/kaspi/static/alphascreen.jpg" /></a>
+ <a target="_blank" href="http://vk.com/juggerfall"><img  width="960px" height="100px" src="/static/alphascreen.jpg" /></a>
 
 </body>
 </html>

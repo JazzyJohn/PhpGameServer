@@ -18,12 +18,12 @@
 <ul>
     <?foreach($sqldata as $element){?>
 <li>
-    <a href="/kaspi/one_new?id=<?=$element["id"]?>"><?=$element["title"]?></a>  <a href="/kaspi/deletenews?id=<?=$element["id"]?>">УДАЛИТЬ</a>
+    <a href="/one_new?id=<?=$element["id"]?>"><?=$element["title"]?></a>  <a href="/deletenews?id=<?=$element["id"]?>">УДАЛИТЬ</a>
 </li>
 
     <?}?>
     <li>
-        <a href="/kaspi/one_new">Добавить новость</a>
+        <a href="/one_new">Добавить новость</a>
     </li>
 </ul>
 

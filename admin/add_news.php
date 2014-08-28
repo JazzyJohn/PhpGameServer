@@ -14,7 +14,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 </head>
 <body>
-<form method="POST" action="/kaspi/addnews" enctype="multipart/form-data">
+<form method="POST" action="/addnews" enctype="multipart/form-data">
     Title: <input  name="title"><br/>
     Text: <textarea  name="text"></textarea><br/>
     Image: <input  name="img" type="file"><br/>

@@ -23,6 +23,7 @@ class LevelController extends BaseController{
 							</classes>
 							<expdictionary>
 							</expdictionary>
+							<passiveskill></passiveskill>
 						</leveling>');
 						
 		$classcount  = 0;
@@ -92,6 +93,48 @@ class LevelController extends BaseController{
 			$domone  = $domclass->ownerDocument->importNode($domone, TRUE);
 			$domclass->appendChild($domone);
 		}
+
+        $sql = "SELECT * FROM `player_skill` WHERE uid='".$data["uid"]."' ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $openSkill = array();
+        if(isset($sqldata[0]["skills"])){
+            $xmlleveling->player->AddChild("skillpoint",$sqldata[0]["skillpoint"]);
+            $openSkill = explode(",",$sqldata[0]["skills"]);
+        }else{
+            $xmlleveling->player->AddChild("skillpoint",0);
+        }
+
+        $sql = "SELECT * FROM `skills` ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $skillbyClass= array();
+        foreach($sqldata as $element){
+            $skillbyClass[$element["class"]][]=$element;
+        }
+        $dompassiveskill = dom_import_simplexml($xmlleveling->passiveskill);
+        foreach($skillbyClass as $element){
+            $classOne   = new SimpleXMLElement('<class></class>');
+            $domone  = dom_import_simplexml($classOne);
+            foreach($element as $skill){
+                $skilOne   = new SimpleXMLElement('<skill></skill>');
+                $domskill  = dom_import_simplexml($skilOne);
+                $skilOne->addChild("id",$skill["id"]);
+                $skilOne->addChild("buff",$skill["buff"]);
+                $skilOne->addChild("lvl",$skill["lvl"]);
+                $skilOne->addChild("name",$skill["name"]);
+                if(in_array($skill["id"],$openSkill)){
+                    $skilOne->addChild("open","true");
+                }else{
+                    $skilOne->addChild("open","false");
+                    $skilOne->addChild("condition",$skill["conditionType"]);
+                    $skilOne->addChild("openKey",$skill["openKey"]);
+                }
+
+                $domskill  = $domone->ownerDocument->importNode($domskill, TRUE);
+                $domone->appendChild($domskill);
+            }
+            $domone  = $dompassiveskill->ownerDocument->importNode($domone, TRUE);
+            $dompassiveskill->appendChild($domone);
+        }
 		header('Content-type: text/xml');
 		echo $xmlleveling->asXml();
 		

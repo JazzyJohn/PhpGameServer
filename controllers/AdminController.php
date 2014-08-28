@@ -8,17 +8,23 @@
 
 class AdminController extends BaseController{
     public static $login ="admin";
-    public static $pass = "titanfight";
+    public static $pass = "nightguard";
 
     public function before(){
-        if (!isset($_SERVER['PHP_AUTH_USER'])) {
-            header('WWW-Authenticate: Basic realm="My Admin"');
-            header('HTTP/1.0 401 Unauthorized');
+        session_start();
 
-            exit;
-        }
-        if(self::$login!=$_SERVER['PHP_AUTH_USER'] && self::$pass!=$_SERVER['PHP_AUTH_PW']){
-            die('Неправильные данные!');
+
+        //print_r(self::$pass);
+        if(self::$login!=$_SESSION['login'] || self::$pass!=$_SESSION['pass']){
+            if(isset($_REQUEST["login"])&&isset($_REQUEST["pass"])&&self::$login==$_REQUEST['login'] && self::$pass==$_REQUEST['pass']){
+                $_SESSION['login']=$_REQUEST["login"];
+                $_SESSION['pass'] =$_REQUEST['pass'];
+
+            }else{
+                require_once(__DIR__."/../admin/form.php");
+                exit;
+            }
+
         }
 
     }
@@ -72,7 +78,7 @@ class AdminController extends BaseController{
         $db->query($sql);
         $sql = "SELECT last_insert_id();";
         $sqldata =$db->fletch_assoc($db->query($sql));
-        header('Location: /kaspi/one_new?id='.$sqldata[0]["last_insert_id()"]);
+        header('Location: /one_new?id='.$sqldata[0]["last_insert_id()"]);
     }
     public function  savenews(){
 
@@ -94,7 +100,7 @@ class AdminController extends BaseController{
         $db->query($sql);
 
     }
-    header('Location: /kaspi/listofnews');
+    header('Location: /listofnews');
 }
 
 }

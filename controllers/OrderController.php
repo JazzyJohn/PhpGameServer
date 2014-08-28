@@ -153,7 +153,7 @@ class OrderController extends BaseController{
         $sqldata =$db->fletch_assoc($db->query($sql));
         $user =$sqldata[0];
 
-        if($input["forGold"]==true){
+        if($input["forGold"]=="True"){
             $price= $item["gold_cost"];
             if($user["gold"]<  $price){
                 $xmlresult->addChild("error",2);
