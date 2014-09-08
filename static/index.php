@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.2.1.unity3d?fix");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.2.6.unity3d?fix");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                             u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
 
@@ -108,7 +108,7 @@ function SayMyUid(){
 }
 function AchivmenUnlock(mess){
    
- VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
+ VK.api("wall.post", {message:"пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
  console.log(data);
    
  });
