@@ -11,6 +11,8 @@ Router::addRoute("/robotKilled","StatisticController");
 
 Router::addRoute("/addUser","StatisticController");
 
+Router::addRoute("/globalerrorlog","StatisticController");
+
 Router::addRoute("/returnAllStats","StatisticController");
 
 Router::addRoute("/notifyUsers","StatisticController");

@@ -1,4 +1,4 @@
-<?
+﻿<?
 class StatisticController extends BaseController{
     /*public function before(){
                 if(!isset($_REQUEST["authkey"])||$_REQUEST["authkey"]!=self::$unity_key){
@@ -104,6 +104,15 @@ class StatisticController extends BaseController{
 
 
 
+    }
+
+    public function globalerrorlog(){
+        $data =$_REQUEST;
+        $sql = "INSERT INTO errorlog (`uid`,`time`,`logString`,`stackTrace`) VALUES ('".$data["uid"]."','".$data["time"]."','".$data["logString"]."','".$data["stackTrace"]."');";
+
+
+        $db = DBHolder::GetDB();
+        $db->query($sql);
     }
 	 
 
