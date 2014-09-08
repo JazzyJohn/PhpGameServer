@@ -1,4 +1,4 @@
-﻿<?
+<?
 class StatisticController extends BaseController{
     /*public function before(){
                 if(!isset($_REQUEST["authkey"])||$_REQUEST["authkey"]!=self::$unity_key){
