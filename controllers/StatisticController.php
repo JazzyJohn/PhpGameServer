@@ -11,6 +11,9 @@ class StatisticController extends BaseController{
         ON DUPLICATE KEY UPDATE death = death + 1   ;";
         $db = DBHolder::GetDB();
         $db->query($sql);
+        if(!isset($data["killeruid"])){
+
+        }
         if(isset($data["inbot"])&&$data["inbot"]==true){
             $sql = "INSERT INTO statistic (`uid`,`name`,`robotkill`) VALUES(".$data["killeruid"].",'".$data["killername"]."',1)
             ON DUPLICATE KEY UPDATE robotkill = robotkill + 1    ;";
@@ -25,7 +28,13 @@ class StatisticController extends BaseController{
             $db->query($sql);
         }
     }
-
+    public function killNpc(){
+        $data =$_REQUEST;
+        $sql = "INSERT INTO statistic (`uid`,`name`,`death`) VALUES('".$data["uid"]."','".$data["name"]."',0)
+        ON DUPLICATE KEY UPDATE killAi = killAi + 1   ;";
+        $db = DBHolder::GetDB();
+        $db->query($sql);
+    }
     public function robotKilled(){
         $data =$_REQUEST;
         $sql = "INSERT INTO statistic (`uid`,`name`,`robotdestroy`) VALUES('".$data["uid"]."','".$data["name"]."',1)

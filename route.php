@@ -7,6 +7,9 @@
  */
 
 Router::addRoute("/killedBy","StatisticController");
+
+Router::addRoute("/killNpc","StatisticController");
+
 Router::addRoute("/robotKilled","StatisticController");
 
 Router::addRoute("/addUser","StatisticController");
