@@ -54,3 +54,7 @@ Router::addRoute("/order_call_back","OrderController");
 Router::addRoute("/loadmoneyreward","RewardController");
 
 Router::addRoute("/syncmoneyreward","RewardController");
+
+Router::addRoute("/registration","RegistrationAPI");
+
+Router::addRoute("/login","RegistrationAPI");
