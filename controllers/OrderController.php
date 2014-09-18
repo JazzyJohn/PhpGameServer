@@ -293,7 +293,7 @@ class OrderController extends BaseController{
                          break;
                      default:
 
-                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".(time()+86400*$inventory['charge'])."','".$inventory['modslot']."')";
+                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".(time()+86400*$inventory['time_end'])."','".$inventory['modslot']."')";
                  }
                  break;
             case "GTIP":

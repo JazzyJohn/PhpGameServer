@@ -20,6 +20,7 @@ return array(
     'NewsController' => dirname(__FILE__) . '/controllers/NewsController.php',
 		'LevelController' => dirname(__FILE__) . '/controllers/LevelController.php',
 			'ItemController' => dirname(__FILE__) . '/controllers/ItemController.php',
+    'ItemControllerOld' => dirname(__FILE__) . '/controllers/ItemControllerold.php',
     'DBHolder' => dirname(__FILE__) . '/classes/DbHolder.php',
 	'Logger' => dirname(__FILE__) . '/classes/Logger.php',
     'vkapi' => dirname(__FILE__) . '/classes/vkapi.class.php',

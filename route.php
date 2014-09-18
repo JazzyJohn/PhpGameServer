@@ -34,11 +34,24 @@ Router::addRoute("/loaditems","ItemController");
 
 Router::addRoute("/loadshop","ItemController");
 
+Router::addRoute("/saveitem","ItemController");
+
+Router::addRoute("/loaditems","ItemControllerOld");
+
+Router::addRoute("/loadshop","ItemControllerOld");
+
+Router::addRoute("/saveitem","ItemControllerOld");
+
+Router::addRoute("/loaditemsnew","ItemController");
+
+Router::addRoute("/loadshopnew","ItemController");
+
+Router::addRoute("/saveitemnew","ItemController");
+
 Router::addRoute("/buyItem","OrderController");
 
 Router::addRoute("/useItem","OrderController");
 
-Router::addRoute("/saveitem","ItemController");
 
 Router::addRoute("/listofnews","AdminController");
 
