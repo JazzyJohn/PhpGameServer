@@ -57,7 +57,16 @@ class DBHolder
             Logger::instance()->write(print_r($answer,true));
             return $answer;
         }
+        public function fletch_array_flat($rid){
+            $answer = array();
+            while($data = mysql_fetch_array($rid)){
 
+
+                $answer[]= $data[0];
+            }
+            Logger::instance()->write(print_r($answer,true));
+            return $answer;
+        }
 
         public static function secure_request($data){
                 $answer = array();

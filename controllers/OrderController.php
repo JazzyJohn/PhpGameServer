@@ -131,9 +131,29 @@ class OrderController extends BaseController{
     public function useItem(){
         $input = $_REQUEST;
         $db = DBHolder::GetDB();
-        $sql = "UPDATE player_game_items_amount SET amount = amount -1 WHERE uid ='".$input['uid']."' and id IN (".$input['game_item'].")";
+        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and game_id IN (".$input['game_item'].")";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $to_delete= array();
+        $to_update= array();
+        foreach($sqldata as $element){
+            if($element["personal"]==1){
+                if($element["charge"]>=0){
+                    $to_update[]=$element['id'];
+                }
+            }else{
+                if($element["charge"]==0){
+                    $to_delete[]=$element['id'];
+                }else{
+                    $to_update[]=$element['id'];
+                }
+            }
+        }
+        $sql = "UPDATE player_inventory SET charge= charge-1 WHERE id IN (".implode(",",$to_update).")";
+        $db->query($sql);
+        $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
         $db->query($sql);
     }
+    /*
     public function buyItem(){
         $input = $_REQUEST;
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
@@ -214,5 +234,84 @@ class OrderController extends BaseController{
         return;
 
     }
+    */
+    public function buyItem(){
+        $input = $_REQUEST;
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM `shop_items` WHERE id = '".$input['shop_item']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(!isset($sqldata[0])){
+            $xmlresult->addChild("error",1);
+            $xmlresult->addChild("errortext","item not found");
+            echo $xmlresult->asXML();
+            return;
+        }
+        $item = $sqldata[0];
+        //TODO: DO LOCK;
+        $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+        $price=$item["price"];
+        switch($item["priceType"]){
+            case "KP":
+                if($user["cash"]<  $price){
+                    $xmlresult->addChild("error",2);
+                    $xmlresult->addChild("errortext","not enough money ");
+                    echo $xmlresult->asXML();
+                    return;
+                }
+                $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
+                $db->query($sql);
+                break;
+            case "GTIP":
 
+                if($user["gold"]<  $price){
+                    $xmlresult->addChild("error",2);
+                    $xmlresult->addChild("errortext","not enough money ");
+                    echo $xmlresult->asXML();
+                    return;
+                }
+                $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
+                $db->query($sql);
+                break;
+        }
+        $sql = "SELECT * FROM inventory_item_dictionary WHERE id = '".$item["inv_id"]."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $inventory = $sqldata[0];
+
+
+        $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,date,currency) VALUES ('".$input['uid']."','".$input['shop_item']."','1','".time()."','".($item["priceType"]=="KP"?1:0)."')";
+        $db->query($sql);
+        switch($item["priceType"]){
+            case "KP":
+                 switch($inventory["type"]){
+                     case 'ETC':
+                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
+                         break;
+                     default:
+
+                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".(time()+86400*$inventory['charge'])."','".$inventory['modslot']."')";
+                 }
+                 break;
+            case "GTIP":
+                switch($inventory["type"]){
+                    case 'ETC':
+                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
+                        break;
+                    default:
+
+                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','1','".$inventory['charge']."','".$inventory['modslot']."')";
+                        break;
+                }
+                break;
+        }
+        $db->query($sql);
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("errortext","");
+        echo $xmlresult->asXML();
+        return;
+    }
 }
