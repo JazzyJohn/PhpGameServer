@@ -360,7 +360,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                          break;
                      default:
 
-                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".(time()+86400*$inventory['time_end'])."','".$inventory['modslot']."')";
+                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
                  }
                  break;
             case "GTIP":
