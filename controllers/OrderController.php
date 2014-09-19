@@ -153,6 +153,73 @@ class OrderController extends BaseController{
         $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
         $db->query($sql);
     }
+
+    public function repairItem(){
+        header('Content-type: text/xml');
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+                            <inventory></inventory>
+							</result>');
+        $input = $_REQUEST;
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and game_id = ".$input["kit_id"]." ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $delete_id= false;
+        $tool= array();
+        foreach($sqldata as $element){
+            if($element["charge"]>=0){
+                $delete_id = $element['id'];
+                $tool = $element;
+                break;
+            }
+        }
+        if(!$delete_id){
+            $xmlresult->addChild("error",1);
+            echo $xmlresult->asXML();
+            return;
+        }
+
+        $sql = "SELECT * FROM player_inventory WHERE id ='".$input["game_id"]."' ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(count($sqldata)==0){
+            $xmlresult->addChild("error",1);
+            echo $xmlresult->asXML();
+            return;
+        }
+        $item  =$sqldata[0];
+        $sql = "SELECT * FROM inventory_item_dictionary WHERE game_id ='".$item["game_id"]."' ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(count($sqldata)==0){
+            $xmlresult->addChild("error",1);
+            echo $xmlresult->asXML();
+            return;
+        }
+        $dictionary = $sqldata[0];
+        if($item["charge"]==$dictionary["charge"]){
+            $xmlresult->addChild("error",1);
+            echo $xmlresult->asXML();
+            return;
+
+        }
+        $setPoint=$item["charge"] +$tool['charge'];
+        if($dictionary["charge"]<$setPoint){
+            $setPoint =$dictionary["charge"];
+        }
+        $sql = "UPDATE player_inventory SET charge=".$setPoint." WHERE  id ='".$input["game_id"]."' ";
+        $db->query($sql);
+        $sql = "DELETE FROM player_inventory WHERE id = ".$delete_id."";
+        $db->query($sql);
+        $itmcontroller = new ItemController();
+        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge, `inventory_item_dictionary`.shopicon, `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
+FROM `player_inventory`
+LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
+LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$input["uid"].'"';
+
+        $playerInventory =$db->fletch_assoc($db->query($sql));
+        $itmcontroller->loadInventory($xmlresult,$playerInventory);
+
+        echo $xmlresult->asXml();
+    }
     /*
     public function buyItem(){
         $input = $_REQUEST;

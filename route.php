@@ -52,6 +52,7 @@ Router::addRoute("/buyItem","OrderController");
 
 Router::addRoute("/useItem","OrderController");
 
+Router::addRoute("/repairItem","OrderController");
 
 Router::addRoute("/listofnews","AdminController");
 
