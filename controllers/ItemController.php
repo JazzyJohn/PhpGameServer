@@ -14,7 +14,9 @@ class ItemController extends BaseController{
         $db = DBHolder::GetDB();
         $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND personal =0 ( charge==0 OR (time_end <'.time().' AND time_end!=-1))';
         $db->query($sql);
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge, `inventory_item_dictionary`.shopicon, `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
+        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
+        `inventory_item_dictionary`.shopicon,
+         `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
                     FROM `player_inventory`
                     LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
                     LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$data["uid"].'"';
@@ -25,7 +27,7 @@ class ItemController extends BaseController{
         $sql = 'SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'"';
         $openItem =$db->fletch_array_flat($db->query($sql));
 
-        $sql = 'SELECT  `game_item`.id,`ingamekey`,`class`,`guiimage`,`defaultforclass`,`free` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id';
+        $sql = 'SELECT  `game_item`.id,`ingamekey`,`class`,`guiimage`,`defaultforclass`,`free` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id  WHERE free<>0'  ;
 
         $sqldata =$db->fletch_assoc($db->query($sql));
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items><inventory></inventory></items>');
@@ -43,13 +45,14 @@ class ItemController extends BaseController{
         }
 
         foreach($sqldata as $element){
-            if($element["free"]==1||in_array($element["id"],$openItem)||ininventory($element["id"],$playerInventory)){
+            if($element["free"]==1||in_array($element["id"],$openItem)){
                 switch($element["type"]){
                     case 0:
                         $wepOne   = new SimpleXMLElement('<weapon></weapon>');
                         $wepOne->addChild("gameClass",$element["class"]);
                         $wepOne->addChild("weaponId",$element["ingamekey"]);
                         $wepOne->addChild("id",$element["id"]);
+                        $wepOne->addChild("free",$element["free"]);
                         $wepOne->addChild("textureGUIName",$element["guiimage"]);
 
                         $wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
@@ -142,7 +145,7 @@ class ItemController extends BaseController{
 
         echo $xmlitems->asXml();
     }
-    public function saveitem(){
+    public function saveitemnew(){
         $data =$_REQUEST;
         //print_r($data);
         $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
@@ -244,9 +247,9 @@ class ItemController extends BaseController{
             $amount[$element["game_id"]]  += $element['charge'];
 
             $itemOne   = new SimpleXMLElement('<item></item>');
-            $itemOne->addChild("id",$element['mainid']);
+            $itemOne->addChild("id",$element['id']);
             $itemOne->addChild("game_id",$element['game_id']);
-            $itemOne->addChild("personal",$element['personal']==1);
+            $itemOne->addChild("personal",$element['personal']==1?"true":"false");
             $itemOne->addChild("charge",$element['charge']);
             $itemOne->addChild("time_end",$element['time_end']);
             $itemOne->addChild("modslot",$element['modslot']);

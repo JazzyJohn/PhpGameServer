@@ -312,7 +312,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(!isset($sqldata[0])){
             $xmlresult->addChild("error",1);
-            $xmlresult->addChild("errortext","item not found");
+            $xmlresult->addChild("errortext","Извините лот не найден");
             echo $xmlresult->asXML();
             return;
         }
@@ -322,27 +322,33 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         $sqldata =$db->fletch_assoc($db->query($sql));
         $user =$sqldata[0];
         $price=$item["price"];
-        switch($item["priceType"]){
+        //print_r($item);
+        switch($item["pricetype"]){
             case "KP":
                 if($user["cash"]<  $price){
                     $xmlresult->addChild("error",2);
-                    $xmlresult->addChild("errortext","not enough money ");
+                    $xmlresult->addChild("errortext","Недостаточно денег");
                     echo $xmlresult->asXML();
                     return;
                 }
                 $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
                 $db->query($sql);
                 break;
-            case "GTIP":
+            case "GITP":
 
                 if($user["gold"]<  $price){
                     $xmlresult->addChild("error",2);
-                    $xmlresult->addChild("errortext","not enough money ");
+                    $xmlresult->addChild("errortext","Недостаточно денег ");
                     echo $xmlresult->asXML();
                     return;
                 }
                 $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
                 $db->query($sql);
+                break;
+            default:
+                $xmlresult->addChild("error",3);
+                $xmlresult->addChild("errortext","Извините лот не найден");
+                echo $xmlresult->asXML();
                 break;
         }
         $sql = "SELECT * FROM inventory_item_dictionary WHERE id = '".$item["inv_id"]."'";
@@ -352,7 +358,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
 
         $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,date,currency) VALUES ('".$input['uid']."','".$input['shop_item']."','1','".time()."','".($item["priceType"]=="KP"?1:0)."')";
         $db->query($sql);
-        switch($item["priceType"]){
+        switch($item["pricetype"]){
             case "KP":
                  switch($inventory["type"]){
                      case 'ETC':
@@ -363,7 +369,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                          $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
                  }
                  break;
-            case "GTIP":
+            case "GITP":
                 switch($inventory["type"]){
                     case 'ETC':
                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
