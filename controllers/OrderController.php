@@ -387,4 +387,33 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         echo $xmlresult->asXML();
         return;
     }
+    public function disentegrateItem(){
+        $input = $_REQUEST;
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+
+        $sql = "SELECT `gold_cost`,`cash_cost` FROM `game_item` WHERE `id` =( SELECT `game_id` FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."') ";
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+
+        $sql = "UPDATE statistic SET gold = gold +".$sqldata[0]["gold_cost"]." ,cash = cash +".$sqldata[0]["cash_cost"]." WHERE uid ='".$input["uid"]."'";
+        $db->query($sql);
+        if($sqldata[0]["gold_cost"]!=0||$sqldata[0]["cash_cost"]!=0){
+            $xmlresult->addChild("error",0);
+            $xmlresult->addChild("gold",$sqldata[0]["gold_cost"]);
+            $xmlresult->addChild("cash",$sqldata[0]["cash_cost"]);
+            echo $xmlresult->asXML();
+            $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
+            $db->query($sql);
+
+
+        }else{
+            $xmlresult->addChild("error",1);
+            $xmlresult->addChild("errortext","Неизвестный предмет");
+            echo $xmlresult->asXML();
+
+        }
+
+    }
 }

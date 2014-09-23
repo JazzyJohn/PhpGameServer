@@ -48,6 +48,8 @@ Router::addRoute("/loadshopnew","ItemController");
 
 Router::addRoute("/saveitemnew","ItemController");
 
+Router::addRoute("/disentegrateItem","OrderController");
+
 Router::addRoute("/buyItem","OrderController");
 
 Router::addRoute("/useItem","OrderController");
