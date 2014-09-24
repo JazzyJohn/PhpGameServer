@@ -129,6 +129,11 @@ class OrderController extends BaseController{
 	}
 
     public function useItem(){
+        header('Content-type: text/xml');
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+                            <inventory></inventory>
+							</result>');
         $input = $_REQUEST;
         $db = DBHolder::GetDB();
         $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and game_id IN (".$input['game_item'].")";
@@ -152,6 +157,15 @@ class OrderController extends BaseController{
         $db->query($sql);
         $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
         $db->query($sql);
+        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge, `inventory_item_dictionary`.shopicon, `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
+FROM `player_inventory`
+LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
+LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$input["uid"].'"';
+        $itmcontroller = new ItemController();
+        $playerInventory =$db->fletch_assoc($db->query($sql));
+        $itmcontroller->loadInventory($xmlresult,$playerInventory);
+
+        echo $xmlresult->asXml();
     }
 
     public function repairItem(){

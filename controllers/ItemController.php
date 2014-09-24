@@ -12,9 +12,9 @@ class ItemController extends BaseController{
         $data =$_REQUEST;
         header('Content-type: text/xml');
         $db = DBHolder::GetDB();
-        $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND personal =0 ( charge==0 OR (time_end <'.time().' AND time_end!=-1))';
+        $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND ((personal =0 AND  charge=0) OR (time_end <'.time().' AND time_end>0))';
         $db->query($sql);
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
+        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
         `inventory_item_dictionary`.shopicon,
          `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
                     FROM `player_inventory`
@@ -27,7 +27,7 @@ class ItemController extends BaseController{
         $sql = 'SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'"';
         $openItem =$db->fletch_array_flat($db->query($sql));
 
-        $sql = 'SELECT  `game_item`.id,`ingamekey`,`class`,`guiimage`,`defaultforclass`,`free` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id  WHERE free<>0'  ;
+        $sql = 'SELECT  `game_item`.id,`ingamekey`,`class`,`guiimage`,`defaultforclass`,`free`,`ingametype` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id  WHERE free<>0'  ;
 
         $sqldata =$db->fletch_assoc($db->query($sql));
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items><inventory></inventory></items>');
@@ -53,6 +53,7 @@ class ItemController extends BaseController{
                         $wepOne->addChild("weaponId",$element["ingamekey"]);
                         $wepOne->addChild("id",$element["id"]);
                         $wepOne->addChild("free",$element["free"]);
+                        $wepOne->addChild("ingametype",$element["ingametype"]);
                         $wepOne->addChild("textureGUIName",$element["guiimage"]);
 
                         $wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
@@ -67,7 +68,7 @@ class ItemController extends BaseController{
                 $domitems->appendChild($domone);
             }
         }
-        $amount = $this->loadInventory($xmlitems,$playerInventory);
+        $this->loadInventory($xmlitems,$playerInventory);
 
 
         $sql = 'SELECT * FROM `game_item` WHERE game_item.type = 1';
@@ -77,22 +78,19 @@ class ItemController extends BaseController{
         foreach($sqldata as $element){
 
             $stims[$element["id"]]["name"] =$element["name"];
-            $stims[$element["id"]]["normalPrice"] =intval($element["cash_cost"]);
-            $stims[$element["id"]]["goldPrice"] =intval($element["gold_cost"]);
-            $stims[$element["id"]]["amount"] =isset( $amount[$element["id"]] )?$amount[$element["id"]]:0;
+
             $stims[$element["id"]]["textureGUIName"] = $element["guiimage"] ;
             $stims[$element["id"]]["buffId"] = $element["ingamekey"] ;
-
+            $stims[$element["id"]]["ingametype"] = $element["ingametype"] ;
         }
 
         foreach($stims as $key=>$stim){
 
             $stimOne   = new SimpleXMLElement('<stim></stim>');
-            $stimOne->addChild("amount",$stim["amount"]);
+
             $stimOne->addChild("textureGUIName",$stim["textureGUIName"]);
             $stimOne->addChild("name",$stim["name"]);
-            $stimOne->addChild("normalPrice",$stim["normalPrice"]);
-            $stimOne->addChild("goldPrice",$stim["goldPrice"]);
+            $stimOne->addChild("group",$stim["ingametype"]);
             $stimOne->addChild("mysqlId",$key);
             $stimOne->addChild("buffId",$key);
             $domone  = dom_import_simplexml($stimOne);
@@ -238,13 +236,10 @@ class ItemController extends BaseController{
     }
     public function loadInventory(&$xml,$playerInventory){
 
-        $amount =array();
+
         $dominv = dom_import_simplexml($xml->inventory);
         foreach($playerInventory as $element){
-            if(!isset($amount[$element["game_id"]] )){
-                $amount[$element["game_id"]] =0;
-            }
-            $amount[$element["game_id"]]  += $element['charge'];
+
 
             $itemOne   = new SimpleXMLElement('<item></item>');
             $itemOne->addChild("id",$element['id']);
@@ -255,6 +250,7 @@ class ItemController extends BaseController{
             $itemOne->addChild("modslot",$element['modslot']);
             $itemOne->addChild("mods",$element['mods']);
             $itemOne->addChild("ingamekey",$element['ingamekey']);
+            $itemOne->addChild("ingametype",$element['ingametype']);
             $itemOne->addChild("class",$element['class']);
             $itemOne->addChild("type",$element['type']);
             $itemOne->addChild("maxcharge",$element['maxcharge']);
@@ -270,6 +266,6 @@ class ItemController extends BaseController{
 
 
         }
-        return $amount;
+
     }
 }
