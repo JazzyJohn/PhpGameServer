@@ -12,7 +12,9 @@ class ItemController extends BaseController{
         $data =$_REQUEST;
         header('Content-type: text/xml');
         $db = DBHolder::GetDB();
+
         $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND ((personal =0 AND  charge=0) OR (time_end <'.time().' AND time_end>0))';
+
         $db->query($sql);
         $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
         `inventory_item_dictionary`.shopicon,
@@ -186,6 +188,20 @@ class ItemController extends BaseController{
             $sql = ' UPDATE `player_setting` SET `default_weapon` = "'.$settings.'" WHERE uid ="'.$data["uid"].'"';
         }
         $db->query($sql);
+        if(isset($data["usedInvItem"])){
+            $sql = "UPDATE `player_inventory` SET `charge` =\n"
+                . "CASE \n"
+                . "WHEN`personal` = 1 THEN `charge`-1\n"
+                . "ELSE `charge`\n"
+                . "END,\n"
+                . "`time_end` = \n"
+                . "CASE\n"
+                . "WHEN (`time_end`=-1 AND `personal`=0) THEN ".time()." + 86400*(SELECT `time_end` FROM `inventory_item_dictionary` WHERE `inventory_item_dictionary`.`game_id` = `player_inventory`.`game_id`)\n"
+                . "ELSE `time_end`\n"
+                . "END   WHERE id IN (".implode(",",$data["usedInvItem"]).")";
+            $db->query($sql);
+        }
+
 
     }
     public function loadshopnew(){
@@ -246,7 +262,8 @@ class ItemController extends BaseController{
             $itemOne->addChild("game_id",$element['game_id']);
             $itemOne->addChild("personal",$element['personal']==1?"true":"false");
             $itemOne->addChild("charge",$element['charge']);
-            $itemOne->addChild("time_end",$element['time_end']);
+
+            $itemOne->addChild("time_end",$element['time_end']<=0?"":date("c",$element['time_end']));
             $itemOne->addChild("modslot",$element['modslot']);
             $itemOne->addChild("mods",$element['mods']);
             $itemOne->addChild("ingamekey",$element['ingamekey']);
