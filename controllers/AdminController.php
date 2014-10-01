@@ -80,6 +80,30 @@ class AdminController extends BaseController{
         $sqldata =$db->fletch_assoc($db->query($sql));
         header('Location: /one_new?id='.$sqldata[0]["last_insert_id()"]);
     }
+
+    public function stats(){
+        $date = (isset($_REQUEST["date"])&&$_REQUEST["date"]!="")?$_REQUEST["date"]:date("Y-m-d", time() -60*60*24*7);
+        $sql = "select \n"
+            . " count(*) total,\n"
+            . " sum(case when ingameenter >0 then 1 else 0 end) SecondTime,\n"
+            . " sum(case when cash> 0 then 1 else 0 end) FinishGame,\n"
+            . " sum(case when killAi> 0 then 1 else 0 end) KillBug\n"
+            . "\n"
+            . "\n"
+            . "from statistic WHERE dateIn > \"$date\" 00:00:00";
+        $db = DBHolder::GetDB();
+       // $db->query($sql);
+
+
+
+        $result["summary"]  =$db->fletch_assoc($db->query($sql));
+        $sql = "SELECT * FROM `statistic`\n"
+            . "ORDER BY `statistic`.`dateIn` DESC LIMIT 0, 10 ";
+        $db = DBHolder::GetDB();
+        $db->query($sql);
+        $result["lastuser"]  =$db->fletch_assoc($db->query($sql));
+        require_once(__DIR__."/../admin/stats.php");
+    }
     public function  savenews(){
 
         $color = addslashes($_REQUEST["color"]);

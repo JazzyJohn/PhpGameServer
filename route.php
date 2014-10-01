@@ -66,6 +66,8 @@ Router::addRoute("/deletenews","AdminController");
 
 Router::addRoute("/savenews","AdminController");
 
+Router::addRoute("/stats","AdminController");
+
 Router::addRoute("/allnews","NewsController");
 
 Router::addRoute("/order_call_back","OrderController");
