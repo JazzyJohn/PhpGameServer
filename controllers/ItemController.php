@@ -138,12 +138,63 @@ class ItemController extends BaseController{
                     $domitems->appendChild($domone);
                 }
             }
+            $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
 
-
+            foreach($marked as $element){
+                $xmlitems->addChild("marked",$element);
+            }
         }
 
 
         echo $xmlitems->asXml();
+    }
+    public function markitem(){
+        $data =$_REQUEST;
+        //print_r($data);
+        $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(isset($sqldata[0])){
+             $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
+        if(!is_array($marked)){
+            $marked=array();
+        }
+        }else{
+            $marked=array();
+        }
+        $marked[]= $data["game_id"];
+        $marked = addslashes(json_encode($marked));
+        if(!isset($sqldata[0])){
+            $sql = ' INSERT INTO `player_setting`  (`uid`,`mark_game_id`) VALUES ("'.$data["uid"].'","'.$marked.'")';
+        }else{
+            $sql = ' UPDATE `player_setting` SET `mark_game_id` = "'.$marked.'" WHERE uid ="'.$data["uid"].'"';
+        }
+        $db->query($sql);
+    }
+
+    public function unmarkitem(){
+        $data =$_REQUEST;
+        $sql = ' SELECT * FROM `player_setting` WHERE uid ="'.$data["uid"].'"';
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if(isset($sqldata[0])){
+            $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
+            if(!is_array($marked)){
+                $marked=array();
+            }
+        }else{
+            $marked=array();
+        }
+        if(($key = array_search($data['game_id'], $marked)) !== false) {
+            unset($marked[$key]);
+            $marked = addslashes(json_encode($marked));
+
+            $sql = ' UPDATE `player_setting` SET `mark_game_id` = "'.$marked.'" WHERE uid ="'.$data["uid"].'"';
+
+            $db->query($sql);
+
+
+        }
     }
     public function saveitemnew(){
         $data =$_REQUEST;

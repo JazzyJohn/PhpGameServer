@@ -399,6 +399,11 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         $xmlresult->addChild("error",0);
         $xmlresult->addChild("errortext","");
         echo $xmlresult->asXML();
+        $itmcontroller = new ItemController();
+        $_REQUEST['game_id']=$inventory['game_id'];
+        $itmcontroller->unmarkitem();
+          //print_r($data);
+
         return;
     }
     public function disentegrateItem(){
