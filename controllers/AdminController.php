@@ -86,7 +86,7 @@ class AdminController extends BaseController{
         $sql = "select \n"
             . " count(*) total,\n"
             . " sum(case when ingameenter >0 then 1 else 0 end) SecondTime,\n"
-            . " sum(case when cash> 0 then 1 else 0 end) FinishGame,\n"
+            . " sum(case when  uid IN ( SELECT uid FROM `level_player` WHERE exp >0 ) then 1 else 0 end) FinishGame,\n"
             . " sum(case when killAi> 0 then 1 else 0 end) KillBug\n"
             . "\n"
             . "\n"
