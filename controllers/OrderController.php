@@ -219,6 +219,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         if($dictionary["charge"]<$setPoint){
             $setPoint =$dictionary["charge"];
         }
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("kit_id",$delete_id);
+
         $sql = "UPDATE player_inventory SET charge=".$setPoint." WHERE  id ='".$input["game_id"]."' ";
         $db->query($sql);
         $sql = "DELETE FROM player_inventory WHERE id = ".$delete_id."";
@@ -376,7 +379,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             case "KP":
                  switch($inventory["type"]){
                      case 'ETC':
-                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
+                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
                          break;
                      default:
 
@@ -423,9 +426,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             $xmlresult->addChild("gold",$sqldata[0]["gold_cost"]);
             $xmlresult->addChild("cash",$sqldata[0]["cash_cost"]);
             echo $xmlresult->asXML();
-            $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
+          /*  $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
             $db->query($sql);
-
+*/
 
         }else{
             $xmlresult->addChild("error",1);

@@ -82,7 +82,7 @@ class AdminController extends BaseController{
     }
 
     public function stats(){
-        $date = (isset($_REQUEST["date"])&&$_REQUEST["date"]!="")?$_REQUEST["date"]:date("Y-m-d", time() -60*60*24*7);
+        $date = (isset($_REQUEST["date"])&&$_REQUEST["date"]!="")?date("Y-m-d", strtotime($_REQUEST["date"])):date("Y-m-d", time() -60*60*24*7);
         $sql = "select \n"
             . " count(*) total,\n"
             . " sum(case when ingameenter >0 then 1 else 0 end) SecondTime,\n"
@@ -90,7 +90,7 @@ class AdminController extends BaseController{
             . " sum(case when killAi> 0 then 1 else 0 end) KillBug\n"
             . "\n"
             . "\n"
-            . "from statistic WHERE dateIn > \"$date\" 00:00:00";
+            . "from statistic WHERE dateIn > \"$date 00:00:00\"";
         $db = DBHolder::GetDB();
        // $db->query($sql);
 

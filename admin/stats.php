@@ -25,14 +25,14 @@
     </script>
 </head>
 <body>
-<form method="POST" action="/stats" enctype="multipart/form-data">
+<form method="GET" action="/stats" enctype="multipart/form-data">
     С: <input  id="date" name="date" value="<?=$_REQUEST["date"]?>"><br/>
 
     <input type='submit' name="Поиск"><br/>
 </form>
 
 Данные с <?=$date?>
-<table>
+<table border="1">
     <tbody>
     <tr>
         <td>Всего игроков</td>
@@ -42,14 +42,14 @@
     </tr>
     <tr>
         <td><?=  $result["summary"][0]["total"]?></td>
-        <td><?=  $result["summary"][0]["killbug"]?></td>
-        <td><?=  $result["summary"][0]["finishgame"]?></td>
-        <td><?=  $result["summary"][0]["secondtime"]?></td>
+        <td><?=  $result["summary"][0]["KillBug"]?></td>
+        <td><?=  $result["summary"][0]["FinishGame"]?></td>
+        <td><?=  $result["summary"][0]["SecondTime"]?></td>
     </tr>
     </tbody>
 </table>
 10 самых новых игроков:
-<table>
+<table border="1">
     <tbody>
     <tr>
         <td>Имя:</td>
@@ -59,10 +59,10 @@
     </tr>
     <?foreach($result["lastuser"] as $element){?>
     <tr>
-        <td><a href="http://vk.com/id<?=  $element["uid"]?>"><?=  $element["name"]?></a></td>
+        <td><a target="_blank" href="http://vk.com/id<?=  $element["UID"]?>"><?=  $element["NAME"]?></a></td>
         <td><?=  $element["cash"]?> / <?=  $element["gold"]?> </td>
-        <td><?=  $element["killai"]?></td>
-        <td><?=  $element["datein"]?></td>
+        <td><?=  $element["killAi"]?></td>
+        <td><?=  $element["dateIn"]?></td>
 
     </tr>
     <?}?>
