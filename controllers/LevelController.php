@@ -121,6 +121,7 @@ class LevelController extends BaseController{
                 $skilOne->addChild("buff",$skill["buff"]);
                 $skilOne->addChild("lvl",$skill["lvl"]);
                 $skilOne->addChild("name",$skill["name"]);
+                $skilOne->addChild("guiimage",$skill["guiimage"]);
                 if(in_array($skill["id"],$openSkill)){
                     $skilOne->addChild("open","true");
                 }else{

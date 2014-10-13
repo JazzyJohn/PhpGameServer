@@ -55,7 +55,7 @@ class AchivementController extends BaseController{
                 $achOne->addChild("amount",$open[$element["id"]]["amount"]);
 			}else{
                 $achOne->addChild("ready","true");
-                $achOne->addChild("multiplie",$element["multiplie"]);
+                $achOne->addChild("multiplie","false");
 				$achOne->addChild("open","false");
                 $achOne->addChild("amount",0);
 			}
@@ -76,6 +76,8 @@ class AchivementController extends BaseController{
 		}
         if(isset($dayly[0]["count"])){
             $xmlachiv->addChild("daylyfinish", $dayly[0]["count"]==10?"true":"false");
+        }else{
+            $xmlachiv->addChild("daylyfinish", "false");
         }
 		echo $xmlachiv->asXml();
 	}
