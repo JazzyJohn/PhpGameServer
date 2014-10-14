@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.2.13.unity3d?fix2");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.1.unity3d");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                             u.getUnity().SendMessage("MainPlayer", "ReloadProfile");
 
