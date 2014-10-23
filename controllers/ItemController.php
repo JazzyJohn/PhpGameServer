@@ -256,10 +256,18 @@ class ItemController extends BaseController{
 
     }
     public function loadshopnew(){
-
+        $data =$_REQUEST;
         header('Content-type: text/xml');
         $db = DBHolder::GetDB();
-        $sql = 'SELECT * FROM `shop_items` ';
+        $sql = "SELECT * FROM level_player WHERE class=-1 AND uid = '".$data['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $lvl = 0;
+        if(isset($sqldata[0])){
+            $lvl  = $sqldata[0]["lvl"];
+        }else{
+            $lvl =0;
+        }
+        $sql = 'SELECT * FROM `shop_items` WHERE `lvl_cap` =0 OR `lvl_cap` < '.$lvl;
         $shops = $db->fletch_assoc($db->query($sql));
         $shopsSort = array();
         foreach($shops as $element){

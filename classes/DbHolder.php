@@ -9,26 +9,18 @@
 class DBHolder
 {
         //JUGGERFALL SECTION
-        /*
-        private static $base_name  = "db1043119_juggerfall";
 
-        private static $base_host  = "192.168.137.101";
-
-        private static $base_user  ="u1043119_kaspi";
-
-        private static $base_psw  ="I8P&TZ(?qNzR";
-        */
 
         //UKRAINE SECTION
 
 
-        private static $base_name  = "db1052248_salo";
+        private static $base_name  = DB_BASE_NAME;
 
-        private static $base_host  = "192.168.137.103";
+        private static $base_host  = DB_HOST;
 
-        private static $base_user  ="u1052248_salo";
+        private static $base_user  =DB_USER;
 
-        private static $base_psw  ="zbRIx2&s:Z";
+        private static $base_psw  =DB_PASSWORD;
 
 
         private static $DB = null;

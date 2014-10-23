@@ -333,6 +333,15 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             echo $xmlresult->asXML();
             return;
         }
+        $sql = "SELECT COUNT( * ) FROM `player_inventory` WHERE uid =  '".$input['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $count =$sqldata[0];
+        if($count>=INVENTORY_MAX){
+            $xmlresult->addChild("error",1);
+            $xmlresult->addChild("errortext","Недостаточно места в инвентаре");
+            echo $xmlresult->asXML();
+            return;
+        }
         $item = $sqldata[0];
         //TODO: DO LOCK;
         $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";

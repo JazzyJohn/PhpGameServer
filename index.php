@@ -10,6 +10,8 @@ require_once("bootstrap.php");
 
 require_once("route.php");
 
+require_once("conf/conf.php");
+
 $uri = $_SERVER["REQUEST_URI"];
 
 $_REQUEST = DBHolder::secure_request($_REQUEST);

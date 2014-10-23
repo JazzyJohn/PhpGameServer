@@ -95,15 +95,19 @@ class AchivementController extends BaseController{
         $sqldata =$db->fletch_assoc($db->query($sql));
         $addToDaylic = 0;
         $addcash = 0;
+        $addgold = 0;
+
         foreach($sqldata as $element){
             if($element["multiplie"]){
                 $addToDaylic++;
+                $addcash+= $element["cashreward"];
 
-
+            }else{
+                $addgold+= $element["cashreward"];
             }
-            $addcash+= $element["cashreward"];
+
         }
-        $sql = "UPDATE statistic SET cash = cash +".$addcash." WHERE uid ='".$data["uid"]."'";
+        $sql = "UPDATE statistic SET cash = cash +".$addcash." , gold = gold+ ".$addgold." WHERE uid ='".$data["uid"]."'";
 
         $db->query($sql);
         $sql = "INSERT INTO `achievement_daylyrecord` (`uid`,`time`,`count`)  VALUES ('".$data["uid"]."','".$today."',".$addToDaylic.")  ON DUPLICATE KEY UPDATE count = count+ ".$addToDaylic."";
@@ -115,7 +119,7 @@ class AchivementController extends BaseController{
 							</result>');
         if($dayly[0]["count"]==10){
             $xmlresult->addChild("daylyfinish", "true");
-            $sql = "UPDATE statistic SET gold = gold + 1 WHERE uid ='".$data["uid"]."'";
+            $sql = "UPDATE statistic SET gold = gold + ".GOLD_FOR_DAYLIC." WHERE uid ='".$data["uid"]."'";
 
             $db->query($sql);
         }else{
