@@ -267,7 +267,7 @@ class ItemController extends BaseController{
         }else{
             $lvl =0;
         }
-        $sql = 'SELECT * FROM `shop_items` WHERE `lvl_cap` =0 OR `lvl_cap` < '.$lvl;
+        $sql = 'SELECT * FROM `shop_items` ';
         $shops = $db->fletch_assoc($db->query($sql));
         $shopsSort = array();
         foreach($shops as $element){
@@ -275,7 +275,7 @@ class ItemController extends BaseController{
 
         }
 
-        $sql = 'SELECT * FROM `inventory_item_dictionary` ';
+        $sql = 'SELECT * FROM `inventory_item_dictionary` WHERE `lvl_cap` =0 OR `lvl_cap` < '.$lvl;
         $invdictionary = $db->fletch_assoc($db->query($sql));
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items></items>');
 

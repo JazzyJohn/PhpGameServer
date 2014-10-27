@@ -333,16 +333,17 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             echo $xmlresult->asXML();
             return;
         }
-        $sql = "SELECT COUNT( * ) FROM `player_inventory` WHERE uid =  '".$input['uid']."'";
+        $item = $sqldata[0];
+        $sql = "SELECT COUNT (*) FROM `player_inventory` WHERE uid =  '".$input['uid']."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $count =$sqldata[0];
         if($count>=INVENTORY_MAX){
             $xmlresult->addChild("error",1);
-            $xmlresult->addChild("errortext","Недостаточно места в инвентаре");
+            $xmlresult->addChild("errortext","Недостаточно места в инвентаре -".INVENTORY_MAX);
             echo $xmlresult->asXML();
             return;
         }
-        $item = $sqldata[0];
+
         //TODO: DO LOCK;
         $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -373,8 +374,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                 break;
             default:
                 $xmlresult->addChild("error",3);
-                $xmlresult->addChild("errortext","Извините лот не найден");
+                $xmlresult->addChild("errortext","Извините лот не найден".$input['shop_item']);
                 echo $xmlresult->asXML();
+                return;
                 break;
         }
         $sql = "SELECT * FROM inventory_item_dictionary WHERE id = '".$item["inv_id"]."'";

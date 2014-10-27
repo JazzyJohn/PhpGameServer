@@ -29,9 +29,9 @@ var uid = <?=isset($_REQUEST["viewer_id"])?$_REQUEST["viewer_id"]:0;?>;
 				textcolor: "ffffff",
 			
 
-                                logoimage: "./LogoNew2.png",
-                                progressbarimage: "./BarNew.png",
-                                progressframeimage: "./FrameNew.png" }
+                                logoimage: "./logo.png",
+                                progressbarimage: "./progressBar.png",
+                                progressframeimage: "./frameImage.png" }
 				
 			};
 			
@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.2.unity3d?rc=1");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.3.unity3d");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                            console.log(  u.getUnity());
 
@@ -129,7 +129,7 @@ function ItemBuy(item){
 </script>
 </head>
 <body >
- <a target="_blank" href="https://vk.com/page-69575283_47003869"><img src="/static/help.png" /></a>
+
   <div id="unityPlayer" style="height:700px;">
 	<div class="missing">
 		<a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
@@ -140,9 +140,8 @@ function ItemBuy(item){
 
 </div>
  <div id="resumebtn" style="height:700px; position: absolute; top:150px;visibility: hidden;">
-     <img src="/static/PauseScreen.jpg"  width="960px"  height="700px"  />
+     <img src="/static/nazhimai.png"  width="960px"  height="700px"  />
  </div>
- <a target="_blank" href="http://vk.com/juggerfall"><img  width="960px" height="100px" src="/static/alphascreen.jpg" /></a>
 
 </body>
 </html>
