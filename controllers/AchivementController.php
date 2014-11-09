@@ -4,7 +4,7 @@ class AchivementController extends BaseController{
 
 	public function loadachive(){
 		header('Content-type: text/xml');
-		$sql = "SELECT id,achievement_list.name,description, icon,achivement_params.name AS paramname,needvalue FROM `achievement_list` INNER JOIN `achivement_params` ON achievement_list.id=achivement_params.aid WHERE achievement_list.open = 1";
+		$sql = "SELECT id,achievement_list.name,description,multiplie, icon,achivement_params.name AS paramname,needvalue FROM `achievement_list` INNER JOIN `achivement_params` ON achievement_list.id=achivement_params.aid WHERE achievement_list.open = 1";
 		$data =$_REQUEST;
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -39,11 +39,13 @@ class AchivementController extends BaseController{
 			$achOne->addChild("name",$element["name"]);
 			$achOne->addChild("description",$element["description"]);
             $achOne->addChild("icon",$element["icon"]);
-
+    
 			if(isset($open[$element["id"]])){
                 if($element["multiplie"]==1){
                     if($open[$element["id"]]['time']+86400<time()){
                         $achOne->addChild("ready","true");
+                    }else{
+                        $achOne->addChild("ready","false");
                     }
                     $achOne->addChild("multiplie","true");
                 }else{
@@ -54,8 +56,13 @@ class AchivementController extends BaseController{
 				$achOne->addChild("open","true");
                 $achOne->addChild("amount",$open[$element["id"]]["amount"]);
 			}else{
+
                 $achOne->addChild("ready","true");
-                $achOne->addChild("multiplie","false");
+                if($element["multiplie"]==1){
+                    $achOne->addChild("multiplie","true");
+                }else{
+                    $achOne->addChild("multiplie","false");
+                }
 				$achOne->addChild("open","false");
                 $achOne->addChild("amount",0);
 			}
@@ -84,7 +91,7 @@ class AchivementController extends BaseController{
 	public function saveachive(){
         $data =$_REQUEST;
         $array = array();
-        $today = strtotime(date("d-m-Y",time()));
+        $today =  mktime(0, 0, 0, date("m")  , date("d"), date("Y"));
         foreach($data["ids"] as $element){
             $array[] = "('".$data["uid"]."',".$element.",'1','".$today."')";
         }
@@ -117,10 +124,10 @@ class AchivementController extends BaseController{
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
                             <result>
 							</result>');
-        if($dayly[0]["count"]==10){
+        if($dayly[0]["count"]==DAYLIC_COUNT){
             $xmlresult->addChild("daylyfinish", "true");
             $sql = "UPDATE statistic SET gold = gold + ".GOLD_FOR_DAYLIC." WHERE uid ='".$data["uid"]."'";
-
+            
             $db->query($sql);
         }else{
           $xmlresult->addChild("daylyfinish","false");

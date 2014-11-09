@@ -48,7 +48,7 @@ $( document ).ready(function() {
 
 					VK.init(function() {
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.3.unity3d");
+                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.5.unity3d?rc=3");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                            console.log(  u.getUnity());
 
@@ -81,12 +81,12 @@ $( document ).ready(function() {
 });
 var answer={};
 function SayMyName(){
-        VK.api("getProfiles", {uid:uid}, function(data) {
+        VK.api("getProfiles", {uid:uid,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
                 
                     answer = data.response[0];
-					//console.log(answer);        
+					console.log(answer);
                         u.getUnity().SendMessage("MainPlayer", "SetName", answer.first_name+" "+answer.last_name);
-
+                        u.getUnity().SendMessage("MainPlayer", "AskAvatar", answer.photo_medium);
 
 
              });
@@ -110,7 +110,7 @@ function SayMyUid(){
 }
 function AchivmenUnlock(mess){
    
- VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app3925872_305915"}, function(data) {
+ VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app4596119_305915"}, function(data) {
  console.log(data);
    
  });

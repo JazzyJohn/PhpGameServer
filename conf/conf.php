@@ -36,6 +36,7 @@ define("DB_PASSWORD", "zbRIx2&s:Z");
 
 
 define("GOLD_FOR_DAYLIC", 2);
+define("DAYLIC_COUNT", 2);
 define("INVENTORY_MAX", 10);
 
 

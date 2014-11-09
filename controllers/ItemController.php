@@ -17,7 +17,7 @@ class ItemController extends BaseController{
 
         $db->query($sql);
         $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
-        `inventory_item_dictionary`.shopicon,
+        `inventory_item_dictionary`.shopicon,   `inventory_item_dictionary`.chars,
          `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
                     FROM `player_inventory`
                     LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
@@ -287,6 +287,7 @@ class ItemController extends BaseController{
             $slotOne->addChild("type",$element["type"]);
             $slotOne->addChild("charge",$element["charge"]);
             $slotOne->addChild("shopicon",$element["shopicon"]);
+            self::parseChar($slotOne,$element['chars']);
             $slotOne->addChild("description",$element["description"]);
             $slotOne->addChild("name",$element["name"]);
             $slotOne->addChild("model",$element["model"]);
@@ -325,6 +326,8 @@ class ItemController extends BaseController{
             $itemOne->addChild("time_end",$element['time_end']<=0?"":date("c",$element['time_end']));
             $itemOne->addChild("modslot",$element['modslot']);
             $itemOne->addChild("mods",$element['mods']);
+            $itemOne->addChild("chars",$element['chars']);
+            self::parseChar($itemOne,$element['chars']);
             $itemOne->addChild("ingamekey",$element['ingamekey']."");
             $itemOne->addChild("ingametype",$element['ingametype']."");
             $itemOne->addChild("class",$element['class']);
@@ -343,5 +346,15 @@ class ItemController extends BaseController{
 
         }
 
+    }
+    public static function parseChar($xmlitems, $str){
+
+        $chars = explode("/",$str);
+        foreach($chars as $char){
+            $tar = explode(":",$char);
+
+            $xmlitems->addChild($tar[0],$tar[1]);
+
+        }
     }
 }
