@@ -16,6 +16,10 @@ if (document.location.protocol == 'https:')
 
 	unityObjectUrl = unityObjectUrl.replace("http://", "https://ssl-");
 document.write('<script type="text/javascript" src="' + unityObjectUrl + '"><\/script>');
+var achivment_images =
+    [
+    "69575283_325521498"
+    ];
 
 </script>
 <script type="text/javascript">
@@ -108,9 +112,15 @@ function SayMyUid(){
 						
 					
 }
+
+function getRandomArbitary(min, max)
+{
+    return Math.random() * (max - min) + min;
+}
+
 function AchivmenUnlock(mess){
    
- VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-69575283_325521498,http://vk.com/app4596119_305915"}, function(data) {
+ VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-"+achivment_images[getRandomArbitary(0,achivment_images.length)]+",http://vk.com/app4596119_305915"}, function(data) {
  console.log(data);
    
  });

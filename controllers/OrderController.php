@@ -392,6 +392,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                      case 'ETC':
                          $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
                          break;
+                     case 'OFFERS':
+
+                         break;
                      default:
 
                          $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
@@ -401,6 +404,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                 switch($inventory["type"]){
                     case 'ETC':
                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
+                        break;
+                    case 'OFFERS':
+
                         break;
                     default:
 
