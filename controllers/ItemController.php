@@ -13,7 +13,7 @@ class ItemController extends BaseController{
         header('Content-type: text/xml');
         $db = DBHolder::GetDB();
 
-        $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND ((personal =0 AND  charge=0 AND time_end=0 ) OR (time_end <'.time().' AND time_end>0))';
+        $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND ((personal =0 AND  charge=0 AND time_end=0 ))';
 
         $db->query($sql);
         $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,

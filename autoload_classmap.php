@@ -18,6 +18,7 @@ return array(
     'RegistrationAPI' => dirname(__FILE__) . '/controllers/RegistrationAPI.php',
     'CronController' => dirname(__FILE__) . '/controllers/CronController.php',
     'NewsController' => dirname(__FILE__) . '/controllers/NewsController.php',
+    'PremiumController' => dirname(__FILE__) . '/controllers/PremiumController.php',
 		'LevelController' => dirname(__FILE__) . '/controllers/LevelController.php',
 			'ItemController' => dirname(__FILE__) . '/controllers/ItemController.php',
     'ItemControllerOld' => dirname(__FILE__) . '/controllers/ItemControllerold.php',

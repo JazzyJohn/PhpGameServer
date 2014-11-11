@@ -81,3 +81,8 @@ Router::addRoute("/syncmoneyreward","RewardController");
 Router::addRoute("/registration","RegistrationAPI");
 
 Router::addRoute("/login","RegistrationAPI");
+
+Router::addRoute("/doublereward","PremiumController");
+
+
+
