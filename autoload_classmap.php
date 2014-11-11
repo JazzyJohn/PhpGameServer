@@ -16,7 +16,7 @@ return array(
     'LoreController' => dirname(__FILE__) . '/controllers/LoreController.php',
     'RewardController' => dirname(__FILE__) . '/controllers/RewardController.php',
     'RegistrationAPI' => dirname(__FILE__) . '/controllers/RegistrationAPI.php',
-
+    'CronController' => dirname(__FILE__) . '/controllers/CronController.php',
     'NewsController' => dirname(__FILE__) . '/controllers/NewsController.php',
 		'LevelController' => dirname(__FILE__) . '/controllers/LevelController.php',
 			'ItemController' => dirname(__FILE__) . '/controllers/ItemController.php',

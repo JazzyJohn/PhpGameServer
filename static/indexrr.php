@@ -18,7 +18,22 @@ if (document.location.protocol == 'https:')
 document.write('<script type="text/javascript" src="' + unityObjectUrl + '"><\/script>');
 var achivment_images =
     [
-    "69575283_325521498"
+        "-78720115_344278770",
+        "-78720115_344278771",
+        "-78720115_344278772",
+        "-78720115_344278773",
+        "-78720115_344278774",
+        "-78720115_344278776",
+        "-78720115_344278778",
+        "-78720115_344278779",
+        "-78720115_344278780",
+        "-78720115_344278782",
+        "-78720115_344278785",
+        "-78720115_344278787",
+        "-78720115_344278788",
+        "-78720115_344278789",
+        "-78720115_344278790"
+
     ];
 
 </script>
@@ -120,7 +135,7 @@ function getRandomArbitary(min, max)
 
 function AchivmenUnlock(mess){
    
- VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo-"+achivment_images[getRandomArbitary(0,achivment_images.length)]+",http://vk.com/app4596119_305915"}, function(data) {
+ VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo"+achivment_images[getRandomArbitary(0,achivment_images.length)]+",http://vk.com/app4596119_305915"}, function(data) {
  console.log(data);
    
  });

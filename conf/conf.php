@@ -36,7 +36,7 @@ define("DB_PASSWORD", "zbRIx2&s:Z");
 
 
 define("GOLD_FOR_DAYLIC", 2);
-define("DAYLIC_COUNT", 2);
+define("DAYLIC_COUNT", 5);
 define("INVENTORY_MAX", 10);
 
 
@@ -45,3 +45,5 @@ define("AUTH_PATH" , 'https://oauth.vk.com/access_token?client_id=4596119&client
 define("API_ID","4596119");
 define("SECRET_KEY","bfCO9rlWzGzxtB6S8SZ6");
 define("UNITY_KEY","");
+
+define("EVERUDAY_ACHIV","17");
