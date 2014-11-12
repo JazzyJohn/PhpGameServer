@@ -76,6 +76,8 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('robotdestroy',$sqldata['robotdestroy']);
         $xmlprofile->addChild('gold',$sqldata['gold']);
         $xmlprofile->addChild('cash',$sqldata['cash']);
+        $xmlprofile->addChild('stamina',$sqldata['stamina']);
+
          echo $xmlprofile->asXML();
     }
 

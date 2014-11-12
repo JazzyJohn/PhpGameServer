@@ -188,6 +188,11 @@ class LevelController extends BaseController{
             if(count($levels_up )>0){
                 LevelUp::init($levels_up,$data["uid"]);
 
+            }else{
+                $xml =new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+                echo $xml->asXML();
             }
 				
 	}
