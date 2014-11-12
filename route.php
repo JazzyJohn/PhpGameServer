@@ -84,5 +84,5 @@ Router::addRoute("/login","RegistrationAPI");
 
 Router::addRoute("/doublereward","PremiumController");
 
-
+Router::addRoute("/lowerstamina","PremiumController");
 

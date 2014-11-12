@@ -38,6 +38,10 @@ class CronController extends BaseController{
 
         $sql = "UPDATE `achievement_list`  SET open =1 WHERE id In (".implode(",",$todayIds).")";
         $db->query($sql);
+
+        $sql = "UPDATE `statistic`  SET stamina =1  WHERE stamina=0";
+
+        $db->query($sql);
     }
 
 }

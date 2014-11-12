@@ -29,5 +29,17 @@ class PremiumController extends BaseController{
       $xmlresult->addChild("errortext","");
       echo $xmlresult->asXML();
   }
+    public function lowerstamina(){
+        $input = $_REQUEST;
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+        $db = DBHolder::GetDB();
+        $sql = "UPDATE statistic SET stamina = stamina -1 WHERE uid ='".$input['uid']."'";
+        $db->query($sql);
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("errortext","");
+        echo $xmlresult->asXML();
+    }
 
 }
