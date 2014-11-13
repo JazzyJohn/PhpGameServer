@@ -2,24 +2,24 @@
 
 class OrderController extends BaseController{
 
-	public function order_call_back(){
-		header("Content-Type: application/json; encoding=utf-8"); 
-		$input = $_POST; 
-		$sig = $input['sig'];
-		unset($input['sig']);
-		ksort($input);
-		$str = '';
-		foreach ($input as $k => $v) {
-			$str .= $k.'='.$v;
-		}
+    public function order_call_back(){
+        header("Content-Type: application/json; encoding=utf-8");
+        $input = $_POST;
+        $sig = $input['sig'];
+        unset($input['sig']);
+        ksort($input);
+        $str = '';
+        foreach ($input as $k => $v) {
+            $str .= $k.'='.$v;
+        }
         $response = array();
-		if ($sig != md5($str.self::$secret_key)) {
-			$response['error'] = array(
-				'error_code' => 10,
-				'error_msg' => 'Несовпадение вычисленной и переданной подписи запроса.',
-				'critical' => true
-				);
-		} else {
+        if ($sig != md5($str.self::$secret_key)) {
+            $response['error'] = array(
+                'error_code' => 10,
+                'error_msg' => 'Несовпадение вычисленной и переданной подписи запроса.',
+                'critical' => true
+            );
+        } else {
             $db = DBHolder::GetDB();
             switch ($input['notification_type']) {
 
@@ -44,7 +44,7 @@ class OrderController extends BaseController{
                             'critical' => true
                         );
                     }
-                 break;
+                    break;
 
                 case 'order_status_change':
                 case 'order_status_change_test':
@@ -57,7 +57,7 @@ class OrderController extends BaseController{
 
                     }
                     $item = $input['item'];
-                     $sql = "SELECT * FROM `items` WHERE item_id = '".$item."'";
+                    $sql = "SELECT * FROM `items` WHERE item_id = '".$item."'";
                     $sqldata =$db->fletch_assoc($db->query($sql));
                     if(isset($sqldata[0])){
                         $ourItem   =$sqldata[0];
@@ -108,25 +108,72 @@ class OrderController extends BaseController{
                                     }
 
                                     break;
+                                //premium
+                                case 2:
+                                    $sql = "UPDATE statistic SET premium = 1, premiumEnd =
+                                            case
+                                            WHEN(premiumEnd < ".time().") THEN ".(time()+60*60*$ourItem["amount"])."
+                                            ELSE premiumEnd +".(60*60*$ourItem["amount"])."
+                                            END
+                                            WHERE uid ='EDITOR1'";
+                                    $db->query($sql);
 
+                                    $sql = "INSERT INTO `asyncnotifiers`   (uid,type,params) VALUES ('".$input['uid']."','PREMIUM','".$item."')";
+                                    $db->query($sql);
+                                    $bonuses = json_decode($ourItem["bonuses"]);
+                                    foreach($bonuses as $element){
+                                        switch($element["type"]){
+                                            case "item":
+                                                switch($element["subtype"]){
+                                                    case "weapon":
+                                                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$receiver_id."','".$element['game_id']."','0','-1','0')";
+
+                                                        break;
+                                                    case "etc":
+
+                                                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$receiver_id."','".$element['game_id']."','0','".$element['charge']."','0')";
+
+                                                        break;
+                                                }
+                                                $db->query($sql);
+                                                break;
+
+                                            case "cash":
+                                                $sql = "UPDATE statistic SET cash = cash +".$element["amount"]." WHERE uid ='".$receiver_id."'";
+                                                $db->query($sql);
+                                                break;
+
+                                            case "gold":
+                                                $sql = "UPDATE statistic SET gold = gold +".$element["amount"]." WHERE uid ='".$receiver_id."'";
+                                                $db->query($sql);
+                                                break;
+
+
+
+
+                                        }
+                                    }
+
+
+                                    break;
                             }
 
                         }
                     }else{
-                    $response['error'] = array(
-                        'error_code' => 20,
-                        'error_msg' => 'Товара не существует.',
-                        'critical' => true
-                    );
-                }
+                        $response['error'] = array(
+                            'error_code' => 20,
+                            'error_msg' => 'Товара не существует.',
+                            'critical' => true
+                        );
+                    }
 
-                break;
-             }
+                    break;
+            }
         }
 
-    echo json_encode($response);
-	
-	}
+        echo json_encode($response);
+
+    }
 
     public function useItem(){
         header('Content-type: text/xml');
@@ -388,18 +435,18 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         $db->query($sql);
         switch($item["pricetype"]){
             case "KP":
-                 switch($inventory["type"]){
-                     case 'ETC':
-                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
-                         break;
-                     case 'OFFERS':
+                switch($inventory["type"]){
+                    case 'ETC':
+                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
+                        break;
+                    case 'OFFERS':
 
-                         break;
-                     default:
+                        break;
+                    default:
 
-                         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
-                 }
-                 break;
+                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
+                }
+                break;
             case "GITP":
                 switch($inventory["type"]){
                     case 'ETC':
@@ -422,7 +469,7 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
         $itmcontroller = new ItemController();
         $_REQUEST['game_id']=$inventory['game_id'];
         $itmcontroller->unmarkitem();
-          //print_r($data);
+        //print_r($data);
 
         return;
     }
@@ -443,9 +490,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             $xmlresult->addChild("gold",$sqldata[0]["gold_cost"]);
             $xmlresult->addChild("cash",$sqldata[0]["cash_cost"]);
             echo $xmlresult->asXML();
-          /*  $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
-            $db->query($sql);
-*/
+            /*  $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
+              $db->query($sql);
+  */
 
         }else{
             $xmlresult->addChild("error",1);

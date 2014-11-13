@@ -77,8 +77,29 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('gold',$sqldata['gold']);
         $xmlprofile->addChild('cash',$sqldata['cash']);
         $xmlprofile->addChild('stamina',$sqldata['stamina']);
+        $xmlprofile->addChild('premium',$sqldata['premium']);
+        $xmlprofile->addChild('premiumEnd',date("c",$sqldata['premiumEnd']));
 
-         echo $xmlprofile->asXML();
+        $sql = "SELECT * FROM asyncnotifiers WHERE uid = '".$data['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $sql = "DELETE FROM asyncnotifiers WHERE uid = '".$data['uid']."'";
+        $db->query($sql);
+
+        $domitems = dom_import_simplexml($xmlprofile);
+        foreach($sqldata as $element){
+            $notOne   = new SimpleXMLElement('<notify></notify>');
+            $notOne->addChild("type",$element["type"]);
+            $tar  =explode(',',$element["params"]);
+            foreach($tar as $param){
+                $notOne->addChild("param",$param);
+            }
+
+            $domone  = dom_import_simplexml($notOne);
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
+        }
+
+        echo $xmlprofile->asXML();
     }
 
 
