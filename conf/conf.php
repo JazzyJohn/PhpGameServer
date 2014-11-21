@@ -38,7 +38,7 @@ define("DB_PASSWORD", "zbRIx2&s:Z");
 define("GOLD_FOR_DAYLIC", 2);
 define("DAYLIC_COUNT", 5);
 define("INVENTORY_MAX", 10);
-define("HOUR_COUNT_FOR_LVL",1);
+define("HOUR_COUNT_FOR_LVL",3);
 define("DOUBLE_REWARD_PRICE",1);
 
 define("AUTH_PATH" , 'https://oauth.vk.com/access_token?client_id=4596119&client_secret=bfCO9rlWzGzxtB6S8SZ6&v=5.21&grant_type=client_credentials');
