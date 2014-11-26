@@ -9,9 +9,9 @@
 class CronController extends BaseController{
 
     public function dayly(){
-        $sql = "UPDATE `achievement_list`  SET open =0  WHERE multiplie=0";
+
         $db = DBHolder::GetDB();
-        $db->query($sql);
+
         $sql = "SELECT * FROM  `achievement_list`  WHERE multiplie=0";
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -35,10 +35,10 @@ class CronController extends BaseController{
            $todayIds[] =$v;
 
        }
-
-        $sql = "UPDATE `achievement_list`  SET open =1 WHERE id In (".implode(",",$todayIds).")";
+        Logger::instance()->write("set new daylic " +print_r($todayIds,true));
+        $sql = "UPDATE `achievement_list`  SET open =0  WHERE multiplie=0; UPDATE `achievement_list`  SET open =1 WHERE id In (".implode(",",$todayIds).");";
         $db->query($sql);
-
+        Logger::instance()->write("set new stamina ");
         $sql = "UPDATE `statistic`  SET stamina =1  WHERE stamina=0";
 
         $db->query($sql);
