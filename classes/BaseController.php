@@ -27,7 +27,7 @@ class BaseController{
         }else{
             if(isset($_REQUEST["uid"])&&is_numeric($_REQUEST["uid"])){
                 Logger::instance()->write("FROM VK WITHOUT SESSION");
-                die("FROM VK WITHOUT SESSION");
+               // die("FROM VK WITHOUT SESSION");
             }
         }
 
