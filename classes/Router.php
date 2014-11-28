@@ -39,7 +39,7 @@ class Router{
         $func = get_class_methods($controller);
         if(in_array("before",$func)){
             if(!$controller->before()){
-               // return;
+                return;
             }
         }
 		$url =explode("/",$url);$url=$url[count($url)-1];

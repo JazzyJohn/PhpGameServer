@@ -2,7 +2,7 @@
 
 
 
-class LevelController extends BaseController{
+class LevelController extends AuthController{
 	static $CLASSCOUNT =4;
 
 	public function loadlvl(){

@@ -1,10 +1,6 @@
 <?
 class StatisticController extends BaseController{
-    /*public function before(){
-                if(!isset($_REQUEST["authkey"])||$_REQUEST["authkey"]!=self::$unity_key){
-                    return false;
-                }
-    }*/
+
     public function killedBy(){
         $data =$_REQUEST;
         $sql = "INSERT INTO statistic (`uid`,`name`,`death`) VALUES('".$data["uid"]."','".$data["name"]."',1)

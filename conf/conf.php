@@ -45,6 +45,6 @@ define("AUTH_PATH" , 'https://oauth.vk.com/access_token?client_id=4596119&client
 
 define("API_ID","4596119");
 define("SECRET_KEY","bfCO9rlWzGzxtB6S8SZ6");
-define("UNITY_KEY","");
+define("UNITY_KEY","redrageawesome");
 
 define("EVERUDAY_ACHIV","17");

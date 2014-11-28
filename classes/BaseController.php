@@ -19,6 +19,20 @@ class BaseController{
         return $token;
     }
 
+    public function before(){
+        session_start();
+        if(isset($_SESSION["uid"])){
+            Logger::instance()->write("SESSION uid ".$_SESSION["uid"]);
+            $_REQUEST["uid"]= $_SESSION["uid"];
+        }else{
+            if(isset($_REQUEST["uid"])&&is_numeric($_REQUEST["uid"])){
+                Logger::instance()->write("FROM VK WITHOUT SESSION");
+                die("FROM VK WITHOUT SESSION");
+            }
+        }
+
+    }
+
 
 
 }

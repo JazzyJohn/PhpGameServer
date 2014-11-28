@@ -9,6 +9,7 @@
 return array(
     'Router' => dirname(__FILE__) . '/classes/Router.php',
     'BaseController' => dirname(__FILE__) . '/classes/BaseController.php',
+    'AuthController' => dirname(__FILE__) . '/classes/AuthController.php',
     'StatisticController' => dirname(__FILE__) . '/controllers/StatisticController.php',
     'AdminController' => dirname(__FILE__) . '/controllers/AdminController.php',
 	'AchivementController' => dirname(__FILE__) . '/controllers/AchivementController.php',

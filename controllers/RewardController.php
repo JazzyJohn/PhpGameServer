@@ -8,7 +8,7 @@
 
 
 
-class RewardController extends BaseController{
+class RewardController extends AuthController{
 
     public function loadmoneyreward(){
 

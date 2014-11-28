@@ -1,6 +1,6 @@
 <?
 
-class AchivementController extends BaseController{
+class AchivementController extends AuthController{
 
 	public function loadachive(){
 		header('Content-type: text/xml');

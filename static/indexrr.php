@@ -1,3 +1,17 @@
+<?
+    require_once(dirname(dirname(__FILE__))."conf/conf.php");
+    require_once(dirname(dirname(__FILE__))."classes/vkAuth.php");
+    if(!VKAuth::AUTHME()){
+        die ("invaders must die");
+    }
+    session_start();
+    $_SESSION["uid"] = $_REQUEST["viewer_id "];
+
+
+
+?>
+
+
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -39,6 +53,7 @@ var achivment_images =
 </script>
 <script type="text/javascript">
 var uid = <?=isset($_REQUEST["viewer_id"])?$_REQUEST["viewer_id"]:0;?>;
+var sid = '<?=session_id()?>';
   	var config = {
 				width: 960,
 				height: 700,
@@ -94,16 +109,20 @@ $( document ).ready(function() {
                         }
                });
 
-	
+
 
 
 });
 var answer={};
+function AskSID(){
+    u.getUnity().SendMessage("MainPalyer","SetSid",sid);
+}
 function SayMyName(){
         VK.api("getProfiles", {uid:uid,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
                 
                     answer = data.response[0];
 					console.log(answer);
+
                         u.getUnity().SendMessage("MainPlayer", "SetName", answer.first_name+" "+answer.last_name);
                         u.getUnity().SendMessage("MainPlayer", "AskAvatar", answer.photo_medium);
 
@@ -149,11 +168,25 @@ function ItemBuy(item){
     VK.callMethod('showOrderBox', params);
 }
 
+function InviteFriend() {
+    VK.callMethod('showInviteBox');
+
+}
 
 
 </script>
 </head>
 <body >
+<div>
+    <center>
+        <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank">
+            <img alt="Группа игры" src="Ui/pw_left.jpg" width="585" height="81"/>
+        </a>
+        <a style="border: 0; margin: -5; padding: 0;" href='#' onclick="InviteFriend();">
+            <img alt="Пригласить друга" src="Ui/pw_right.jpg" width="315" height="81"/>
+        </a>
+    </center>
+</div>
 
   <div id="unityPlayer" style="height:700px;">
 	<div class="missing">
