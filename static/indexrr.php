@@ -146,7 +146,24 @@ function SayMyUid(){
 						
 					
 }
+function GetUsers(uids){
+    VK.api("users.get", {uid:uids,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
 
+        answer = data.response;
+     
+        var result = [];
+
+        for(var i=0; i < answer.length;i++){
+            var tar = [];
+            tar[0] = answer.uid;
+            tar[1] = answer[i].first_name + " "+answer[i].last_name;
+            tar[2] = answer.photo_medium;
+            result [result.length]=  tar.join(";");
+        }
+
+        u.getUnity().SendMessage("MainPlayer", "ReturnUsers",  result.join(","););
+    });
+}
 function getRandomArbitary(min, max)
 {
     return Math.random() * (max - min) + min;

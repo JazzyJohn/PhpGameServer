@@ -34,6 +34,7 @@ class Router{
             echo $url." 404";
             return;
         }
+        
         Logger::instance()->write($classname);
         Logger::instance()->write(print_r($_REQUEST,true));
         $func = get_class_methods($controller);
