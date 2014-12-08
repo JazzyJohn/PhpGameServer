@@ -49,7 +49,7 @@ class LevelUp {
     public function openItem($itemId){
         $db = DBHolder::GetDB();
         $this->xmlresult->addChild("item_reward",$itemId);
-        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$this->uid."','".$itemId."','0','".(time()+60*HOUR_COUNT_FOR_LVL)."','0')";
+        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$this->uid."','".$itemId."','0','".(time()+60*60*HOUR_COUNT_FOR_LVL)."','0')";
           $db->query($sql);
     }
 } 

@@ -26,7 +26,7 @@ class AdminController extends BaseController{
             }
 
         }
-
+        return true;
     }
 
     public function listofnews(){
@@ -126,5 +126,24 @@ class AdminController extends BaseController{
     }
     header('Location: /listofnews');
 }
+
+    public function daylicfix(){
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM `achievement_daylyrecord`";
+        $dayly=$db->fletch_assoc($db->query($sql));
+        $data= array();
+        foreach($dayly as $element){
+            if(!isset($data[$element["uid"]])){
+                $data[$element["uid"]]=0;
+            }
+            $data[$element["uid"]]+=$element["count"];
+        }
+        foreach($data as $key=>$element){
+            $sql = "UPDATE statistic SET daylicCnt=".$element."  WHERE uid ='".$key."'";
+            $db->query($sql);
+
+        }
+        print_r($data);
+    }
 
 }

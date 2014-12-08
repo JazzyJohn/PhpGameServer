@@ -10,9 +10,15 @@ class CronController extends BaseController{
 
     public function dayly(){
 
-        $db = DBHolder::GetDB();
+        Logger::instance()->write("REMOTE_ADDR cron " .$_SERVER["REMOTE_ADDR"]);
+        if($_SERVER["REMOTE_ADDR"]!=LOCAL_ADDR){
+           echo"invaders must die";
+            exit;
 
-        $sql = "SELECT * FROM  `achievement_list`  WHERE multiplie=0";
+        }
+
+
+        $sql = "SELECT * FROM  `achievement_list`  WHERE multiplie=1";
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         $idsArray = array();
@@ -35,8 +41,15 @@ class CronController extends BaseController{
            $todayIds[] =$v;
 
        }
-        Logger::instance()->write("set new daylic " +print_r($todayIds,true));
-        $sql = "UPDATE `achievement_list`  SET open =0  WHERE multiplie=0; UPDATE `achievement_list`  SET open =1 WHERE id In (".implode(",",$todayIds).");";
+        Logger::instance()->write("set new daylic " .print_r($todayIds,true));
+        $sql = "UPDATE `achievement_list`  SET open =
+        CASE
+        WHEN  id IN (".implode(",",$todayIds).") THEN 1
+        ELSE 0
+        END
+        WHERE multiplie = 1
+
+        ;";
         $db->query($sql);
         Logger::instance()->write("set new stamina ");
         $sql = "UPDATE `statistic`  SET stamina =1  WHERE stamina=0";

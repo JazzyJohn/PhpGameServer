@@ -94,7 +94,7 @@ class ItemController extends BaseController{
             $stimOne->addChild("name",$stim["name"]);
             $stimOne->addChild("group",$stim["ingametype"]);
             $stimOne->addChild("mysqlId",$key);
-            $stimOne->addChild("buffId",$key);
+            $stimOne->addChild("buffId",$stim["buffId"]);
             $domone  = dom_import_simplexml($stimOne);
 
 

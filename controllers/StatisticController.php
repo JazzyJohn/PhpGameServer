@@ -73,7 +73,7 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('gold',$sqldata['gold']);
         $xmlprofile->addChild('cash',$sqldata['cash']);
         $xmlprofile->addChild('stamina',$sqldata['stamina']);
-        $xmlprofile->addChild('premium',$sqldata['premium']);
+        $xmlprofile->addChild('premium',$sqldata['premium']==1?"true":"false");
         $xmlprofile->addChild('premiumEnd',date("c",$sqldata['premiumEnd']));
 
         $sql = "SELECT * FROM asyncnotifiers WHERE uid = '".$data['uid']."'";
@@ -94,7 +94,117 @@ class StatisticController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+        if(isset($_REQUEST["tournament"])){
+            $xmlprofile->addChild("tournament","yes");
+            $sql = "SELECT uid, killCnt FROM statistic ORDER BY  killCnt DESC LIMIT 0,10";
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $notOne   = new SimpleXMLElement('<globalkillers></globalkillers>');
+                $notOne->addChild("uid",$element["uid"]);
+                $notOne->addChild("score",$element["killCnt"]);
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+            $sql = "SELECT uid, killAi FROM statistic ORDER BY  killAi DESC LIMIT 0,10";
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $notOne   = new SimpleXMLElement('<globalaikillers></globalaikillers>');
+                $notOne->addChild("uid",$element["uid"]);
+                $notOne->addChild("score",$element["killAi"]);
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+            $sql = "SELECT uid,lvl FROM  `level_player` WHERE class =-1 ORDER BY  `level_player`.`lvl` DESC   LIMIT 0,10";
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $notOne   = new SimpleXMLElement('<toplvls></toplvls>');
+                $notOne->addChild("uid",$element["uid"]);
+                $notOne->addChild("score",$element["lvl"]);
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+            $sql = "SELECT uid, cash FROM statistic ORDER BY  cash DESC LIMIT 0,10";
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $notOne   = new SimpleXMLElement('<topcash></topcash>');
+                $notOne->addChild("uid",$element["uid"]);
+                $notOne->addChild("score",$element["cash"]);
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+            $sql = "SELECT uid, daylicCnt FROM statistic ORDER BY  daylicCnt DESC LIMIT 0,10";
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $notOne   = new SimpleXMLElement('<daylic></daylic>');
+                $notOne->addChild("uid",$element["uid"]);
+                $notOne->addChild("score",$element["daylicCnt"]);
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+            $sql = "SELECT * FROM operation WHERE status < 2";
+            $operations =$db->fletch_assoc($db->query($sql));
+            $ids = array();
+            foreach($operations as $element){
+                $ids[]=$element["id"];
+            }
+            $sql = "SELECT * FROM operation_players WHERE oid IN (".implode(",",$ids).") ORDER BY counter  DESC LIMIT 0,10 ";
+            $sortedwinners = array();
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $sortedwinners[$element["oid"]][] = $element;
+            }
+            $sql = "SELECT * FROM operation_players WHERE oid IN (".implode(",",$ids).") AND uid ='".$data['uid']."'";
+            $myscore = array();
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            foreach($sqldata as $element){
+                $myscore[$element["oid"]] = $element["counter"];
+            }
 
+            foreach($operations as $element){
+                if($element["status"]==1){
+                    $notOne   = new SimpleXMLElement('<lastoperation></lastoperation>');
+                }else{
+                    $notOne   = new SimpleXMLElement('<currentoperation></currentoperation>');
+                }
+
+                $notOne->addChild("id",$element["id"]);
+                $notOne->addChild("prizeplaces",$element["prizeplaces"]);
+                $tar = explode(",",$element["cashReward"]);
+                foreach($tar as $reward){
+                    $notOne->addChild("cashReward",$reward);
+                }
+                $tar = explode(",",$element["goldReward"]);
+                foreach($tar as $reward){
+                    $notOne->addChild("goldReward",$reward);
+                }
+
+                $domone  = dom_import_simplexml($notOne);
+                if(isset($sortedwinners[$element["id"]])){
+                    foreach($sortedwinners[$element["id"]] as $winer){
+                        $winerNode   = new SimpleXMLElement('<winners></winners>');
+                        $winerNode->addChild("uid",$winer["uid"]);
+                        $winerNode->addChild("score",$winer["counter"]);
+                        $domwin  = dom_import_simplexml($winerNode);
+                        $domwin  = $domone->ownerDocument->importNode($domwin, TRUE);
+                        $domone->appendChild($domwin);
+                    }
+                }
+                $notOne->addChild("start",$element["start"]);
+                $notOne->addChild("end",$element["end"]);
+                $notOne->addChild("name",$element["name"]);
+                $notOne->addChild("desctiption",$element["desctiption"]);
+                $notOne->addChild("counterEvent",$element["counterEvent"]);
+                $notOne->addChild("myCounter",isset($myscore[$element["id"]])?$myscore[$element["id"]]:0);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+
+            }
+        }
         echo $xmlprofile->asXML();
     }
 

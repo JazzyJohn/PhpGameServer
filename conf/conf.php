@@ -48,3 +48,4 @@ define("SECRET_KEY","bfCO9rlWzGzxtB6S8SZ6");
 define("UNITY_KEY","redrageawesome");
 
 define("EVERUDAY_ACHIV","17");
+define("LOCAL_ADDR","109.120.162.56");

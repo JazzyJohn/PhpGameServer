@@ -1,17 +1,19 @@
-<?
-    require_once(dirname(dirname(__FILE__))."conf/conf.php");
-    require_once(dirname(dirname(__FILE__))."classes/vkAuth.php");
+<!--<?
+
+    require_once(dirname(dirname(__FILE__))."/conf/conf.php");
+    require_once(dirname(dirname(__FILE__))."/classes/vkAuth.php");
+
     if(!VKAuth::AUTHME()){
+
         die ("invaders must die");
     }
     session_start();
-    $_SESSION["uid"] = $_REQUEST["viewer_id "];
+    $_SESSION["uid"] = $_REQUEST["viewer_id"];
 
 
-
+    session_write_close();
 ?>
-
-
+-->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
@@ -30,25 +32,7 @@ if (document.location.protocol == 'https:')
 
 	unityObjectUrl = unityObjectUrl.replace("http://", "https://ssl-");
 document.write('<script type="text/javascript" src="' + unityObjectUrl + '"><\/script>');
-var achivment_images =
-    [
-        "-78720115_344278770",
-        "-78720115_344278771",
-        "-78720115_344278772",
-        "-78720115_344278773",
-        "-78720115_344278774",
-        "-78720115_344278776",
-        "-78720115_344278778",
-        "-78720115_344278779",
-        "-78720115_344278780",
-        "-78720115_344278782",
-        "-78720115_344278785",
-        "-78720115_344278787",
-        "-78720115_344278788",
-        "-78720115_344278789",
-        "-78720115_344278790"
 
-    ];
 
 </script>
 <script type="text/javascript">
@@ -58,12 +42,12 @@ var sid = '<?=session_id()?>';
 				width: 960,
 				height: 700,
 				params: { enableDebugging:"0",
-                                backgroundcolor: "ffffff",
-                                bordercolor: "ffffff",
+                                backgroundcolor: "FFAE00",
+                                bordercolor: "FFAE00",
 				textcolor: "ffffff",
 			
 
-                                logoimage: "./logo.png",
+                                logoimage: "./logo1.png",
                                 progressbarimage: "./progressBar.png",
                                 progressframeimage: "./frameImage.png" }
 				
@@ -81,8 +65,15 @@ $( document ).ready(function() {
 
 
 					VK.init(function() {
+<?
+if($_REQUEST["viewer_id"]==305915){?>
+                        u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.5.0.unity3d");
+                        <?
+}else{?>
+                        u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.5.0.unity3d");
+<?}
+?>
 
-                     u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.3.5.unity3d?rc=3");
                         VK.addCallback('onOrderSuccess', function(order_id) {
                            console.log(  u.getUnity());
 
@@ -147,7 +138,7 @@ function SayMyUid(){
 					
 }
 function GetUsers(uids){
-    VK.api("users.get", {uid:uids,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
+    VK.api("users.get", {user_ids:uids,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
 
         answer = data.response;
      
@@ -155,22 +146,40 @@ function GetUsers(uids){
 
         for(var i=0; i < answer.length;i++){
             var tar = [];
-            tar[0] = answer.uid;
+            tar[0] = answer[i].uid;
             tar[1] = answer[i].first_name + " "+answer[i].last_name;
-            tar[2] = answer.photo_medium;
+            tar[2] = answer[i].photo_medium;
             result [result.length]=  tar.join(";");
         }
 
-        u.getUnity().SendMessage("MainPlayer", "ReturnUsers",  result.join(","););
+        u.getUnity().SendMessage("MainPlayer", "ReturnUsers",  result.join(","));
     });
 }
 function getRandomArbitary(min, max)
 {
-    return Math.random() * (max - min) + min;
+    return Math.round( Math.random() * (max - min) + min);
 }
+var achivment_images =
+    [
+        "-78720115_344278770",
+        "-78720115_344278771",
+        "-78720115_344278772",
+        "-78720115_344278773",
+        "-78720115_344278774",
+        "-78720115_344278776",
+        "-78720115_344278778",
+        "-78720115_344278779",
+        "-78720115_344278780",
+        "-78720115_344278782",
+        "-78720115_344278785",
+        "-78720115_344278787",
+        "-78720115_344278788",
+        "-78720115_344278789",
+        "-78720115_344278790"
 
+    ];
 function AchivmenUnlock(mess){
-   
+   console.log({message:"Достижение открыто: " +mess,attachments:"photo"+achivment_images[getRandomArbitary(0,achivment_images.length)]+",http://vk.com/app4596119_305915"});
  VK.api("wall.post", {message:"Достижение открыто: " +mess,attachments:"photo"+achivment_images[getRandomArbitary(0,achivment_images.length)]+",http://vk.com/app4596119_305915"}, function(data) {
  console.log(data);
    
@@ -193,16 +202,13 @@ function InviteFriend() {
 
 </script>
 </head>
-<body >
+<body style="background-color: #FFAE00" >
 <div>
-    <center>
-        <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank">
-            <img alt="Группа игры" src="Ui/pw_left.jpg" width="585" height="81"/>
-        </a>
-        <a style="border: 0; margin: -5; padding: 0;" href='#' onclick="InviteFriend();">
-            <img alt="Пригласить друга" src="Ui/pw_right.jpg" width="315" height="81"/>
-        </a>
-    </center>
+
+        <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/topic-78720115_30966102" target="_blank"><img alt="Сообщить об ошибке" src="btn/oshibki.png" width="320" height="80"/></a>
+        <a style="border: 0; margin: 0; padding: 0;" href='#' onclick="InviteFriend();"><img alt="Пригласить друга" src="btn/pozvat_druzei.png" width="320" height="80"/></a>
+        <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank"><img alt="Группа игры" src="btn/V_gruppu.png" width="320" height="80"/></a>
+
 </div>
 
   <div id="unityPlayer" style="height:700px;">

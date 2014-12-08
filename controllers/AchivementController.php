@@ -103,18 +103,18 @@ class AchivementController extends AuthController{
         $addToDaylic = 0;
         $addcash = 0;
         $addgold = 0;
-
+        $daylic="";
         foreach($sqldata as $element){
             if($element["multiplie"]){
                 $addToDaylic++;
                 $addcash+= $element["cashreward"];
-
+                $daylic=",daylicCnt = daylicCnt + 1 ";
             }else{
                 $addgold+= $element["cashreward"];
             }
 
         }
-        $sql = "UPDATE statistic SET cash = cash +".$addcash." , gold = gold+ ".$addgold." WHERE uid ='".$data["uid"]."'";
+        $sql = "UPDATE statistic SET cash = cash +".$addcash." , gold = gold+ ".$addgold." ".$daylic." WHERE uid ='".$data["uid"]."'";
 
         $db->query($sql);
         $sql = "INSERT INTO `achievement_daylyrecord` (`uid`,`time`,`count`)  VALUES ('".$data["uid"]."','".$today."',".$addToDaylic.")  ON DUPLICATE KEY UPDATE count = count+ ".$addToDaylic."";

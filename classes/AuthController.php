@@ -17,10 +17,12 @@ class AuthController extends BaseController{
         }
         $digest = $headers["X-Digest"];
         $data = self::getRawPost();
+        Logger::instance()->write("EXPECTED this ".md5($data.UNITY_KEY) ." got this".$digest);
+
         if(md5($data.UNITY_KEY) == $digest){
             return true;
         }else{
-            Logger::instance()->write("EXPECTED this ".md5($data.UNITY_KEY) ." got this".$digest);
+           // Logger::instance()->write("EXPECTED this ".md5($data.UNITY_KEY) ." got this".$digest);
             return true;
         }
     }

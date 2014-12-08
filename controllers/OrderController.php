@@ -115,12 +115,14 @@ class OrderController extends BaseController{
                                             WHEN(premiumEnd < ".time().") THEN ".(time()+60*60*$ourItem["amount"])."
                                             ELSE premiumEnd +".(60*60*$ourItem["amount"])."
                                             END
-                                            WHERE uid ='EDITOR1'";
+                                            WHERE uid ='$receiver_id'";
                                     $db->query($sql);
 
-                                    $sql = "INSERT INTO `asyncnotifiers`   (uid,type,params) VALUES ('".$input['uid']."','PREMIUM','".$item."')";
+                                    $sql = "INSERT INTO `asyncnotifiers`   (uid,type,params) VALUES ('".$receiver_id."','PREMIUM','".$item."')";
                                     $db->query($sql);
-                                    $bonuses = json_decode($ourItem["bonuses"]);
+                                  //  Logger::instance()->write(print_r($ourItem["bonuses"],true));
+                                    $bonuses = json_decode($ourItem["bonuses"],true);
+                                    //Logger::instance()->write(print_r($bonuses,true));
                                     foreach($bonuses as $element){
                                         switch($element["type"]){
                                             case "item":
@@ -183,11 +185,12 @@ class OrderController extends BaseController{
 							</result>');
         $input = $_REQUEST;
         $db = DBHolder::GetDB();
-        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and game_id IN (".$input['game_item'].")";
+        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and id IN (".$input['game_item'].")";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $to_delete= array();
         $to_update= array();
         foreach($sqldata as $element){
+           
             if($element["personal"]==1){
                 if($element["charge"]>=0){
                     $to_update[]=$element['id'];
@@ -200,12 +203,18 @@ class OrderController extends BaseController{
                 }
             }
         }
-        $sql = "UPDATE player_inventory SET charge= charge-1 WHERE id IN (".implode(",",$to_update).")";
-        $db->query($sql);
-        $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
-        $db->query($sql);
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge, `inventory_item_dictionary`.shopicon, `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
-FROM `player_inventory`
+        if(count($to_update)>0){
+              $sql = "UPDATE player_inventory SET charge= charge-1 WHERE id IN (".implode(",",$to_update).")";
+            $db->query($sql);
+        }
+        if(count($to_delete)>0){
+            $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
+            $db->query($sql);
+        }
+        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
+        `inventory_item_dictionary`.shopicon,   `inventory_item_dictionary`.chars,
+         `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
+                    FROM `player_inventory`
 LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
 LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$input["uid"].'"';
         $itmcontroller = new ItemController();
@@ -490,9 +499,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             $xmlresult->addChild("gold",$sqldata[0]["gold_cost"]);
             $xmlresult->addChild("cash",$sqldata[0]["cash_cost"]);
             echo $xmlresult->asXML();
-            /*  $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
+            $sql ="DELETE FROM `player_inventory` WHERE `id` =".$input["game_id"]." AND `uid` ='".$input["uid"]."'";
               $db->query($sql);
-  */
+
 
         }else{
             $xmlresult->addChild("error",1);

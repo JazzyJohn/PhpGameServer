@@ -40,6 +40,7 @@ class Router{
         $func = get_class_methods($controller);
         if(in_array("before",$func)){
             if(!$controller->before()){
+                Logger::instance()->write("Bad Before");
                 return;
             }
         }

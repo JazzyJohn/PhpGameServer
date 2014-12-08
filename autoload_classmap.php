@@ -14,6 +14,7 @@ return array(
     'AdminController' => dirname(__FILE__) . '/controllers/AdminController.php',
 	'AchivementController' => dirname(__FILE__) . '/controllers/AchivementController.php',
     'OrderController' => dirname(__FILE__) . '/controllers/OrderController.php',
+    'TournamentController' => dirname(__FILE__) . '/controllers/TournamentController.php',
     'LoreController' => dirname(__FILE__) . '/controllers/LoreController.php',
     'RewardController' => dirname(__FILE__) . '/controllers/RewardController.php',
     'RegistrationAPI' => dirname(__FILE__) . '/controllers/RegistrationAPI.php',

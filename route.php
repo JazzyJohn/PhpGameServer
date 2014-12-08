@@ -87,3 +87,5 @@ Router::addRoute("/doublereward","PremiumController");
 Router::addRoute("/lowerstamina","PremiumController");
 
 Router::addRoute("/dayly","CronController");
+
+Router::addRoute("/saveoperation","TournamentController");

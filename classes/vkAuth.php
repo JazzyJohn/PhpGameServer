@@ -7,8 +7,9 @@
  */
 
 class VKAuth{
-    public static function AUTHME(){
-       if($_REQUEST["api_id"]."_". $_REQUEST["viewer_id "]."_".SECRET_KEY==$_REQUEST["auth_key"]){
+    public static function  AUTHME(){
+
+       if(md5($_REQUEST["api_id"]."_". $_REQUEST["viewer_id"]."_".SECRET_KEY)==$_REQUEST["auth_key"]){
            return true;
        }else{
            return false;
