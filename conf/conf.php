@@ -28,9 +28,9 @@ define("UNITY_KEY","");
 
 
 
-define("DB_BASE_NAME","db1052248_salo");
-define("DB_HOST", "192.168.137.103");
-define("DB_USER", "u1052248_salo");
+define("DB_BASE_NAME","redrage");
+define("DB_HOST", "localhost");
+define("DB_USER", "redrage_db");
 define("DB_PASSWORD", "zbRIx2&s:Z");
 
 
@@ -48,4 +48,4 @@ define("SECRET_KEY","bfCO9rlWzGzxtB6S8SZ6");
 define("UNITY_KEY","redrageawesome");
 
 define("EVERUDAY_ACHIV","17");
-define("LOCAL_ADDR","109.120.162.56");
+define("LOCAL_ADDR","37.252.125.102");

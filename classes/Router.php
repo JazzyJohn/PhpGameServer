@@ -9,6 +9,8 @@
 class Router{
     //сиглетон
     private static $sigleton= null;
+
+    public static $isdebug=false;
     public static function instance(){
         if(self::$sigleton==null){
 
@@ -37,6 +39,14 @@ class Router{
         
         Logger::instance()->write($classname);
         Logger::instance()->write(print_r($_REQUEST,true));
+
+
+
+        if(preg_match("/editor\d/i",$_REQUEST["uid"])){
+           self::$isdebug = true;
+        }
+
+
         $func = get_class_methods($controller);
         if(in_array("before",$func)){
             if(!$controller->before()){

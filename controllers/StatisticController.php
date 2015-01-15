@@ -146,18 +146,17 @@ class StatisticController extends BaseController{
                 $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
                 $domitems->appendChild($domone);
             }
-            $sql = "SELECT * FROM operation WHERE status < 2";
+            if(Router::$isdebug){
+                $sql = "SELECT * FROM operation WHERE status < 2 OR status =3";
+            }else{
+                $sql = "SELECT * FROM operation WHERE status < 2";
+            }
             $operations =$db->fletch_assoc($db->query($sql));
             $ids = array();
             foreach($operations as $element){
                 $ids[]=$element["id"];
             }
-            $sql = "SELECT * FROM operation_players WHERE oid IN (".implode(",",$ids).") ORDER BY counter  DESC LIMIT 0,10 ";
-            $sortedwinners = array();
-            $sqldata =$db->fletch_assoc($db->query($sql));
-            foreach($sqldata as $element){
-                $sortedwinners[$element["oid"]][] = $element;
-            }
+
             $sql = "SELECT * FROM operation_players WHERE oid IN (".implode(",",$ids).") AND uid ='".$data['uid']."'";
             $myscore = array();
             $sqldata =$db->fletch_assoc($db->query($sql));
@@ -166,9 +165,10 @@ class StatisticController extends BaseController{
             }
 
             foreach($operations as $element){
-                if($element["status"]==1){
+                if($element["status"]==1||(Router::$isdebug&&$element["status"]==3)){
                     $notOne   = new SimpleXMLElement('<lastoperation></lastoperation>');
                 }else{
+
                     $notOne   = new SimpleXMLElement('<currentoperation></currentoperation>');
                 }
 
@@ -184,8 +184,12 @@ class StatisticController extends BaseController{
                 }
 
                 $domone  = dom_import_simplexml($notOne);
-                if(isset($sortedwinners[$element["id"]])){
-                    foreach($sortedwinners[$element["id"]] as $winer){
+                $sql = "SELECT * FROM operation_players WHERE oid = ".$element["id"]." ORDER BY counter  DESC LIMIT 0,10 ";
+
+                $sortedwinners =$db->fletch_assoc($db->query($sql));
+
+
+                    foreach($sortedwinners as $winer){
                         $winerNode   = new SimpleXMLElement('<winners></winners>');
                         $winerNode->addChild("uid",$winer["uid"]);
                         $winerNode->addChild("score",$winer["counter"]);
@@ -193,7 +197,7 @@ class StatisticController extends BaseController{
                         $domwin  = $domone->ownerDocument->importNode($domwin, TRUE);
                         $domone->appendChild($domwin);
                     }
-                }
+
                 $notOne->addChild("start",$element["start"]);
                 $notOne->addChild("end",$element["end"]);
                 $notOne->addChild("name",$element["name"]);

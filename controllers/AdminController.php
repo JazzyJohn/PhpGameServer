@@ -145,5 +145,71 @@ class AdminController extends BaseController{
         }
         print_r($data);
     }
+    public function  operations(){
+        $db = DBHolder::GetDB();
+        switch($_REQUEST["action"]){
 
+            case "finish":
+                $sql = "SELECT * FROM operation WHERE status =3";
+                $operations =$db->fletch_assoc($db->query($sql));
+                if(count($operations)==0){
+                    echo "Нет операции для отправки в бой невозможно завершить текущую";
+
+                }else{
+
+                    echo "Операция ".$operations[0]["name"]. " отправлена в бой<br>";
+
+
+
+                    $sql = "SELECT * FROM operation WHERE status =0";
+                    $operations =$db->fletch_assoc($db->query($sql));
+                    $operation =$operations[0];
+                    echo "Операция ".$operation["name"]. " завершена<br>";
+                    $sql = "SELECT * FROM operation WHERE status =1";
+                    $operations =$db->fletch_assoc($db->query($sql));
+                    if(count($operations)!=0){
+                        $lastoperation= $operations[0];
+                        echo "Операция ".$lastoperation["name"]. " отправлена в архив<br>";
+
+                    }
+                    $sql = "UPDATE operation SET status=2  WHERE status = 1";
+                    $db->query($sql);
+                    $sql = "UPDATE operation SET status=1  WHERE status = 0";
+                    $db->query($sql);
+                    $sql = "UPDATE operation SET status=0  WHERE status = 3";
+                    $db->query($sql);
+
+                    $sql = "SELECT * FROM operation_players WHERE oid = '".$operation["id"]."' ORDER BY counter  DESC ";
+                    $winners =$db->fletch_assoc($db->query($sql));
+                    $cashReward = explode(",",$operation["cashReward"]);
+
+                    $goldReward = explode(",",$operation["goldReward"]);
+                    for($i=0;$i<$operation["prizeplaces"];$i++){
+                        echo "Место ".$i. " <a href='http://vk.com/id".$winners[$i]["uid"]."'>".$winners[$i]["uid"]."</a> +".$cashReward[$i]. " кредитов +".$goldReward[$i]." золота <br>";
+
+                        $sql = "UPDATE statistic SET cash = cash +".$cashReward[$i].", gold = gold+ ".$goldReward[$i]." WHERE uid ='".$winners[$i]["uid"]."'";
+                        echo $sql." <br>";
+                        $db->query($sql);
+                    }
+
+                    for($i= $operation["prizeplaces"]; $i<count($winners);$i++){
+                        echo "Место ".$i. " <a href='http://vk.com/id".$winners[$i]["uid"]."'>".$winners[$i]["uid"]."</a> +".$cashReward[$operation["prizeplaces"]]. " кредитов +".$goldReward[$operation["prizeplaces"]]." золота <br>";
+                        $uids[] ="'".$winners[$i]["uid"]."'";
+
+
+                    }
+                    $sql = "UPDATE statistic SET cash = cash +".$cashReward[$operation["prizeplaces"]].", gold = gold+ ".$goldReward[$operation["prizeplaces"]]." WHERE uid IN (".implode(",",$uids).")";
+                    echo $sql;
+                    $db->query($sql);
+                }
+
+
+                break;
+
+        }
+        $sql = "SELECT * FROM operation ";
+        $operations =$db->fletch_assoc($db->query($sql));
+
+        require_once(__DIR__."/../admin/operation.php");
+    }
 }

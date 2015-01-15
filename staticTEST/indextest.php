@@ -3,10 +3,7 @@
 require_once(dirname(dirname(__FILE__))."/conf/conf.php");
 require_once(dirname(dirname(__FILE__))."/classes/vkAuth.php");
 
-if(!VKAuth::AUTHME()){
 
-    die ("invaders must die");
-}
 session_start();
 $_SESSION["uid"] = $_REQUEST["viewer_id"];
 
@@ -42,8 +39,8 @@ session_write_close();
             width: 960,
             height: 700,
             params: { enableDebugging:"0",
-                backgroundcolor: "ffffff",
-                bordercolor: "ffffff",
+                backgroundcolor: "FFAE00",
+                bordercolor: "FFAE00",
                 textcolor: "ffffff",
 
 
@@ -64,41 +61,9 @@ session_write_close();
         $( document ).ready(function() {
 
 
-            VK.init(function() {
-                <?
-                if($_REQUEST["viewer_id"]==305915){?>
-                u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.8.2.unity3d");
-                       <?
-              }else{?>
-                u.initPlugin(jQuery("#unityPlayer")[0], "/static/builds0.8.2.unity3d");
-                <?}
-                ?>
 
-                VK.addCallback('onOrderSuccess', function(order_id) {
+                u.initPlugin(jQuery("#unityPlayer")[0], "/staticTEST/web_builde_RR.unity3d");
 
-
-                    u.getUnity().SendMessage("MainPlayer", "ReloadProfile","");
-
-                });
-                VK.addCallback('onOrderFail', function() {
-
-
-                });
-                VK.addCallback('onOrderCancel', function() {
-
-
-                });
-                VK.addCallback("onWindowBlur", onWindowBlur);
-                function onWindowBlur() {
-                    document.getElementById('unityPlayer').style.visibility = 'hidden';
-                    document.getElementById('resumebtn').style.visibility = 'visible';
-                }
-                VK.addCallback("onWindowFocus", onWindowFocus);
-                function onWindowFocus() {
-                    document.getElementById('unityPlayer').style.visibility = 'visible';
-                    document.getElementById('resumebtn').style.visibility = 'hidden';
-                }
-            });
 
 
 
@@ -125,7 +90,7 @@ session_write_close();
 
 
 
-                VK.api('photos.createAlbum', {title: 'RED RAGE', privacy: '0', comment_privacy: '0', description: 'Многопользовательский шутер про противостояние войск СССР и НАТО.'}, function(data)
+                VK.api('photos.createAlbum', {title: 'RED RAGE', privacy: '0', comment_privacy: '0', description: 'пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ.'}, function(data)
                 {
                     aid = data['response']['aid'];
                     VKGetUploadServer();
@@ -158,7 +123,7 @@ session_write_close();
             var aid = my_array['aid'];
             var hash = my_array['hash'];
 
-            VK.api('photos.save', {server: server, photos_list: photos_list, aid: aid, hash: hash, caption: 'RED RAGE. Присоединяйся: http://vk.com/app4596119'}, function(data)
+            VK.api('photos.save', {server: server, photos_list: photos_list, aid: aid, hash: hash, caption: 'RED RAGE. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ: http://vk.com/app4596119'}, function(data)
             {
                 var unity = u.getUnity();
                 unity.SendMessage("MainPlayer", "UploadComplite", "1");
@@ -205,30 +170,16 @@ session_write_close();
             u.getUnity().SendMessage("MainPalyer","SetSid",sid);
         }
         function SayMyName(){
-            VK.api("getProfiles", {uid:uid,fields:"first_name,last_name,uid,photo_medium"}, function(data) {
 
-                answer = data.response[0];
-                console.log(answer);
+                u.getUnity().SendMessage("MainPlayer", "SetName", "name");
+                u.getUnity().SendMessage("MainPlayer", "AskAvatar", "photo_medium");
 
-                u.getUnity().SendMessage("MainPlayer", "SetName", answer.first_name+" "+answer.last_name);
-                u.getUnity().SendMessage("MainPlayer", "AskAvatar", answer.photo_medium);
-
-
-            });
         }
         function SayMyUid(){
 
             //console.log(answer);
-            u.getUnity().SendMessage("MainPlayer", "SetUid", answer.uid +"");
-            VK.api("friends.getAppUsers", {}, function(data) {
+            u.getUnity().SendMessage("MainPlayer", "SetUid", "EDITOR1");
 
-
-
-
-                u.getUnity().SendMessage("MainPlayer", "addFriendInfoList", data.response.join(","));
-
-
-            });
 
 
 
@@ -306,14 +257,13 @@ session_write_close();
 
     </script>
 </head>
-<body style="background-color: #ffffff" >
+<body style="background-color: #FFAE00" >
 <div>
 
-    <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/topic-78720115_30966102" target="_blank"><img alt="Сообщить об ошибке" src="btn/oshibki.png" width="317" height="80"/></a>
-    <a style="border: 0; margin: 0; padding: 0;" href='#' onclick="InviteFriend();"><img alt="Пригласить друга" src="btn/pozvat_druzei.png" width="317" height="80"/></a>
-    <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank"><img alt="Группа игры" src="btn/V_gruppu.png" width="317" height="80"/></a>
+    <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/topic-78720115_30966102" target="_blank"><img alt="пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ" src="btn/oshibki.png" width="320" height="80"/></a>
+    <a style="border: 0; margin: 0; padding: 0;" href='#' onclick="InviteFriend();"><img alt="пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ" src="btn/pozvat_druzei.png" width="320" height="80"/></a>
+    <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank"><img alt="пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ" src="btn/V_gruppu.png" width="320" height="80"/></a>
 
-    <a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank"><img alt="Группа игры" src="btn/pokupai.png" width="960" height="100"/></a>
 </div>
 
 <div id="unityPlayer" style="height:700px;">
@@ -328,6 +278,6 @@ session_write_close();
 <div id="resumebtn" style="height:700px; position: absolute; top:150px;visibility: hidden;">
     <img src="/static/nazhimai.png"  width="960px"  height="700px"  />
 </div>
-<a style="border: 0; margin: 0; padding: 0;" href="//vk.com/redrage3D" target="_blank"><img alt="Группа игры" src="btn/alpha.png" width="960" height="100"/></a>
+
 </body>
 </html>
