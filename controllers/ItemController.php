@@ -13,65 +13,12 @@ class ItemController extends BaseController{
         header('Content-type: text/xml');
         $db = DBHolder::GetDB();
 
-        $sql = 'DELETE FROM `player_inventory` WHERE uid="'.$data["uid"].'" AND ((personal =0 AND  charge=0 AND time_end=0 ))';
 
-        $db->query($sql);
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
-        `inventory_item_dictionary`.shopicon,   `inventory_item_dictionary`.chars,
-         `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
-                    FROM `player_inventory`
-                    LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
-                    LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$data["uid"].'"';
-
-        $playerInventory =$db->fletch_assoc($db->query($sql));
-
-
-        $sql = 'SELECT itid FROM `player_opened_gameitem` WHERE uid="'.$data["uid"].'"';
-        $openItem =$db->fletch_array_flat($db->query($sql));
-
-        $sql = 'SELECT  `game_item`.id,`ingamekey`,`class`,`guiimage`,`defaultforclass`,`free`,`ingametype` FROM `game_item`INNER JOIN `game_item_to_class` ON game_item_to_class.id=game_item.id  WHERE free<>0'  ;
-
-        $sqldata =$db->fletch_assoc($db->query($sql));
         $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items><inventory></inventory></items>');
 
         $domitems = dom_import_simplexml($xmlitems);
-        function ininventory($id,$playerInventory){
-           foreach($playerInventory as $element){
-                if($element["game_id"]==$id){
-
-                        return true;
-
-                }
-           }
-            return false;
-        }
-
-        foreach($sqldata as $element){
-            if($element["free"]==1||in_array($element["id"],$openItem)){
-                switch($element["type"]){
-                    case 0:
-                        $wepOne   = new SimpleXMLElement('<weapon></weapon>');
-                        $wepOne->addChild("gameClass",$element["class"]);
-                        $wepOne->addChild("weaponId",$element["ingamekey"]);
-                        $wepOne->addChild("id",$element["id"]);
-                        $wepOne->addChild("free",$element["free"]);
-                        $wepOne->addChild("ingametype",$element["ingametype"]);
-                        $wepOne->addChild("textureGUIName",$element["guiimage"]);
-
-                        $wepOne->addChild("default",$element["defaultforclass"]==1?"true":"false");
-
-                        break;
-
-
-                }
-
-                $domone  = dom_import_simplexml($wepOne);
-                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
-                $domitems->appendChild($domone);
-            }
-        }
-        $this->loadInventory($xmlitems,$playerInventory);
-
+        $this->first_time($data["uid"]);
+        $this->loadInventory($xmlitems,$data["uid"]);
 
         $sql = 'SELECT * FROM `game_item` WHERE game_item.type = 1';
 
@@ -155,10 +102,10 @@ class ItemController extends BaseController{
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(isset($sqldata[0])){
-             $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
-        if(!is_array($marked)){
-            $marked=array();
-        }
+            $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
+            if(!is_array($marked)){
+                $marked=array();
+            }
         }else{
             $marked=array();
         }
@@ -194,6 +141,15 @@ class ItemController extends BaseController{
             $db->query($sql);
 
 
+        }
+    }
+    public function first_time($uid){
+        $sql = ' SELECT COUNT(*) FROM `game_items_players` WHERE uid ="'.$uid.'"';
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        if($sqldata['COUNT(*)']==0){
+            $sql = ' INSERT INTO `game_items_players`  (`uid`,`	item_id`,`buytype`) VALUES ("'.$uid.'","'.NEWBIE_PISTOL.'","FOR_KP")';
+            $db->query($sql);
         }
     }
     public function saveitemnew(){
@@ -255,89 +211,82 @@ class ItemController extends BaseController{
 
 
     }
-    public function loadshopnew(){
-        $data =$_REQUEST;
-        header('Content-type: text/xml');
+
+    public function loadInventory(&$xml,$uid){
         $db = DBHolder::GetDB();
-        $sql = "SELECT * FROM level_player WHERE class=-1 AND uid = '".$data['uid']."'";
+        $sql = 'SELECT * FROM `game_items_price`';
         $sqldata =$db->fletch_assoc($db->query($sql));
-        $lvl = 0;
-        if(isset($sqldata[0])){
-            $lvl  = $sqldata[0]["lvl"];
-        }else{
-            $lvl =0;
-        }
-        $sql = 'SELECT * FROM `shop_items` ';
-        $shops = $db->fletch_assoc($db->query($sql));
-        $shopsSort = array();
-        foreach($shops as $element){
-             $shopsSort[$element["inv_id"]][$element["pricetype"]] = $element;
-
-        }
-
-        $sql = 'SELECT * FROM `inventory_item_dictionary` WHERE `lvl_cap` =0 OR `lvl_cap` < '.$lvl;
-        $invdictionary = $db->fletch_assoc($db->query($sql));
-        $xmlitems = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><items></items>');
-
-        $domitems = dom_import_simplexml($xmlitems);
-        foreach($invdictionary as $element){
-            $slotOne   = new SimpleXMLElement('<slot></slot>');
-            $slotOne->addChild("game_id",$element["game_id"]);
-            $slotOne->addChild("class",$element["class"]);
-            $slotOne->addChild("type",$element["type"]);
-            $slotOne->addChild("charge",$element["charge"]);
-            $slotOne->addChild("shopicon",$element["shopicon"]);
-            self::parseChar($slotOne,$element['chars']);
-            $slotOne->addChild("description",$element["description"]);
-            $slotOne->addChild("name",$element["name"]);
-            $slotOne->addChild("model",$element["model"]);
-            if(isset(  $shopsSort[$element["id"]]["KP"])){
-                $slotOne->addChild("kp_price",$shopsSort[$element["id"]]["KP"]["price"]);
-                $slotOne->addChild("kp_shop_id",$shopsSort[$element["id"]]["KP"]["id"]);
+        $prices  = array();
+        foreach($sqldata as $element){
+            if($element["group"]==0){
+                $prices[$element['inv_id']]["single"][]=$element;
             }else{
-                $slotOne->addChild("kp_price",0);
+                $prices[$element['inv_id']]["group"][$element["group"]][]=$element;
             }
-            if(isset(  $shopsSort[$element["id"]]["GITP"])){
-                $slotOne->addChild("gitp_price",$shopsSort[$element["id"]]["GITP"]["price"]);
-                $slotOne->addChild("gitp_shop_id",$shopsSort[$element["id"]]["GITP"]["id"]);
-            }else{
-                $slotOne->addChild("gitp_price",0);
-            }
-            $domone  = dom_import_simplexml($slotOne);
-            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
-            $domitems->appendChild($domone);
+
         }
 
-        echo $xmlitems->asXml();
-    }
-    public function loadInventory(&$xml,$playerInventory){
-
+        $sql = 'SELECT * FROM `game_items_dictionary` AS dic
+                            LEFT JOIN `game_items_players` AS fact ON (dic.id = fact.item_id AND fact.uid= "'.$uid.'")
+                            LEFT JOIN `game_items_sets` AS sets ON (dic.set_id =sets.sid)';
+        $sqldata =$db->fletch_assoc($db->query($sql));
 
         $dominv = dom_import_simplexml($xml->inventory);
-        foreach($playerInventory as $element){
+        foreach($sqldata as $element){
 
 
             $itemOne   = new SimpleXMLElement('<item></item>');
             $itemOne->addChild("id",$element['id']);
-            $itemOne->addChild("game_id",$element['game_id']);
-            $itemOne->addChild("personal",$element['personal']==1?"true":"false");
-            $itemOne->addChild("charge",$element['charge']);
-
-            $itemOne->addChild("time_end",$element['time_end']<=0?"":date("c",$element['time_end']));
-            $itemOne->addChild("modslot",$element['modslot']);
-            $itemOne->addChild("mods",$element['mods']);
-            $itemOne->addChild("chars",$element['chars']);
-            self::parseChar($itemOne,$element['chars']);
-            $itemOne->addChild("ingamekey",$element['ingamekey']."");
-            $itemOne->addChild("ingametype",$element['ingametype']."");
             $itemOne->addChild("class",$element['class']);
             $itemOne->addChild("type",$element['type']);
+            $itemOne->addChild("ingame_type",$element['ingame_type']);
+            $itemOne->addChild("ingame_mysqlid",$element['ingame_mysqlid']);
             $itemOne->addChild("maxcharge",$element['maxcharge']);
+            $itemOne->addChild("maxmodslot",$element['maxmodslot']);
             $itemOne->addChild("shopicon",$element['shopicon']);
             $itemOne->addChild("description",$element['description']);
             $itemOne->addChild("name",$element['name']);
             $itemOne->addChild("model",$element['model']);
+            $itemOne->addChild("set",$element['set_name']);
+            $itemOne->addChild("repair_cost",$element['repair_cost']);
+            self::parseChar($itemOne,$element['chars']);
+
+            if($element['buytype']==null){
+                $element['buytype'] ="NONE";
+                $itemOne->addChild("time_end","");
+                $itemOne->addChild("charge",0);
+                $itemOne->addChild("modslot",0);
+                $itemOne->addChild("mods","");
+            }else{
+                $itemOne->addChild("time_end",  $element['time_end']);
+                $itemOne->addChild("charge",$element['charge']);
+                $itemOne->addChild("modslot",$element['modslot']);
+                $itemOne->addChild("mods",$element['mods']);
+            }
             $domone  = dom_import_simplexml($itemOne);
+            if(isset($prices[$element['id']]["single"])){
+                foreach($prices[$element['id']]["single"] as $price ){
+                    $priceXml   = new SimpleXMLElement('<price></price>');
+                    $priceXml->addChild("type",$price["type"]);
+                    $priceXml->addChild("amount",$price["amount"]);
+                    $dprice  = dom_import_simplexml($priceXml);
+                    $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);
+                    $domone->appendChild($dprice);
+                }
+            }
+            if(isset($prices[$element['id']]["group"])){
+                foreach($prices[$element['id']]["group"] as $group ){
+                    $priceXml   = new SimpleXMLElement('<price></price>');
+                    foreach($group as $price){
+                        $priceXml->addChild("type",$price["type"]);
+                        $priceXml->addChild("amount",$price["amount"]);
+                    }
+                    $dprice  = dom_import_simplexml($priceXml);
+                    $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);
+                    $domone->appendChild($dprice);
+                }
+            }
+
 
             $domone  = $dominv->ownerDocument->importNode($domone, TRUE);
             $dominv->appendChild($domone);

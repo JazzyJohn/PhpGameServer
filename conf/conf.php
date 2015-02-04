@@ -49,3 +49,6 @@ define("UNITY_KEY","redrageawesome");
 
 define("EVERUDAY_ACHIV","17");
 define("LOCAL_ADDR","37.252.125.102");
+
+define("NEWBIE_PISTOL","18");
+
