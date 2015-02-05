@@ -152,6 +152,34 @@ class ItemController extends BaseController{
             $db->query($sql);
         }
     }
+
+    public function chargedata(){
+        $data =$_REQUEST;
+        //print_r($data);
+        $db = DBHolder::GetDB();
+        $ids= array();
+        foreach($data["charge"]as $key=>$val){
+            $ids[] = $key;
+        }
+        $sql = "SELECT * FROM game_items_dictionary AS dic JOIN game_items_players AS fact ON dic.id = fact.item_id  WHERE dic.id  IN ('".$ids."') AND fact.uid =  '".$data["uid"]."'";
+        $db->query($sql);
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        foreach($sqldata as $element){
+            $add = $data["charge"][$element["id"]];
+            if($element["charge"]==$element["maxcharge"]){
+                continue;
+            }else if($element["charge"]+$add>=$element["maxcharge"]){
+                $sql = "UPDATE `game_items_players` SET charge='".$element["maxcharge"]."' WHERE uid=  '".$data["uid"]."' AND item_id =  '".$element["id"]."'";
+            }else{
+                $sql = "UPDATE `game_items_players` SET charge=chrage + '".$add."' WHERE uid=  '".$data["uid"]."' AND item_id =  '".$element["id"]."'";
+            }
+
+            $db->query($sql);
+        }
+
+
+
+    }
     public function saveitemnew(){
         $data =$_REQUEST;
         //print_r($data);
@@ -195,26 +223,14 @@ class ItemController extends BaseController{
             $sql = ' UPDATE `player_setting` SET `default_weapon` = "'.$settings.'" WHERE uid ="'.$data["uid"].'"';
         }
         $db->query($sql);
-        if(isset($data["usedInvItem"])){
-            $sql = "UPDATE `player_inventory` SET `charge` =\n"
-                . "CASE \n"
-                . "WHEN`personal` = 1 THEN `charge`-1\n"
-                . "ELSE `charge`\n"
-                . "END,\n"
-                . "`time_end` = \n"
-                . "CASE\n"
-                . "WHEN (`time_end`=-1 AND `personal`=0) THEN ".time()." + 86400*(SELECT `time_end` FROM `inventory_item_dictionary` WHERE `inventory_item_dictionary`.`game_id` = `player_inventory`.`game_id`)\n"
-                . "ELSE `time_end`\n"
-                . "END   WHERE id IN (".implode(",",$data["usedInvItem"]).")";
-            $db->query($sql);
-        }
+
 
 
     }
 
     public function loadInventory(&$xml,$uid){
         $db = DBHolder::GetDB();
-        $sql = 'SELECT * FROM `game_items_price`';
+        $sql = 'SELECT * FROM `game_items_price` ORDER BY `order` ASC, `type` ASC,`amount` ASC';
         $sqldata =$db->fletch_assoc($db->query($sql));
         $prices  = array();
         foreach($sqldata as $element){
@@ -268,6 +284,7 @@ class ItemController extends BaseController{
                 foreach($prices[$element['id']]["single"] as $price ){
                     $priceXml   = new SimpleXMLElement('<price></price>');
                     $priceXml->addChild("type",$price["type"]);
+                    $priceXml->addChild("id",$price["id"]);
                     $priceXml->addChild("amount",$price["amount"]);
                     $dprice  = dom_import_simplexml($priceXml);
                     $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);
@@ -280,6 +297,7 @@ class ItemController extends BaseController{
                     foreach($group as $price){
                         $priceXml->addChild("type",$price["type"]);
                         $priceXml->addChild("amount",$price["amount"]);
+                        $priceXml->addChild("id",$price["id"]);
                     }
                     $dprice  = dom_import_simplexml($priceXml);
                     $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);

@@ -185,41 +185,25 @@ class OrderController extends BaseController{
 							</result>');
         $input = $_REQUEST;
         $db = DBHolder::GetDB();
-        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and id IN (".$input['game_item'].")";
+        $sql = "SELECT * FROM game_items_dictionary WHERE uid ='".$input['uid']."' and 	item_id IN (".$input['game_item'].")";
         $sqldata =$db->fletch_assoc($db->query($sql));
-        $to_delete= array();
+
         $to_update= array();
         foreach($sqldata as $element){
            
-            if($element["personal"]==1){
-                if($element["charge"]>=0){
-                    $to_update[]=$element['id'];
-                }
-            }else{
-                if($element["charge"]==0){
-                    $to_delete[]=$element['id'];
-                }else{
-                    $to_update[]=$element['id'];
-                }
-            }
+
+           $to_update[]=$element['id'];
+
         }
         if(count($to_update)>0){
-              $sql = "UPDATE player_inventory SET charge= charge-1 WHERE id IN (".implode(",",$to_update).")";
-            $db->query($sql);
+              $sql = "UPDATE game_items_dictionary SET charge= charge-1 WHERE  uid ='".$input['uid']."' and 	item_id IN (".implode(",",$to_update).")";
+              $db->query($sql);
         }
-        if(count($to_delete)>0){
-            $sql = "DELETE FROM player_inventory WHERE id IN (".implode(",",$to_delete).")";
-            $db->query($sql);
-        }
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey,`game_item`.ingametype, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge,
-        `inventory_item_dictionary`.shopicon,   `inventory_item_dictionary`.chars,
-         `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
-                    FROM `player_inventory`
-LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
-LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$input["uid"].'"';
+
+
         $itmcontroller = new ItemController();
-        $playerInventory =$db->fletch_assoc($db->query($sql));
-        $itmcontroller->loadInventory($xmlresult,$playerInventory);
+
+        $itmcontroller->loadInventory($xmlresult,$input['uid']);
 
         echo $xmlresult->asXml();
     }
@@ -232,32 +216,9 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
 							</result>');
         $input = $_REQUEST;
         $db = DBHolder::GetDB();
-        $sql = "SELECT * FROM player_inventory WHERE uid ='".$input['uid']."' and game_id = ".$input["kit_id"]." ";
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        $delete_id= false;
-        $tool= array();
-        foreach($sqldata as $element){
-            if($element["charge"]>=0){
-                $delete_id = $element['id'];
-                $tool = $element;
-                break;
-            }
-        }
-        if(!$delete_id){
-            $xmlresult->addChild("error",1);
-            echo $xmlresult->asXML();
-            return;
-        }
 
-        $sql = "SELECT * FROM player_inventory WHERE id ='".$input["game_id"]."' ";
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        if(count($sqldata)==0){
-            $xmlresult->addChild("error",1);
-            echo $xmlresult->asXML();
-            return;
-        }
-        $item  =$sqldata[0];
-        $sql = "SELECT * FROM inventory_item_dictionary WHERE game_id ='".$item["game_id"]."' ";
+
+        $sql = "SELECT * FROM game_items_dictionary AS dic JOIN game_items_players AS fact ON dic.id = fact.item_id JOIN game_items_sets AS sets ON dic.set_id = sets.sid WHERE dic.id ='".$input["game_id"]."' AND fact.uid =  '".$input["uid"]."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(count($sqldata)==0){
             $xmlresult->addChild("error",1);
@@ -265,31 +226,40 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             return;
         }
         $dictionary = $sqldata[0];
-        if($item["charge"]==$dictionary["charge"]){
+        if($dictionary["maxcharge"]==$dictionary["charge"]){
             $xmlresult->addChild("error",1);
             echo $xmlresult->asXML();
             return;
 
         }
-        $setPoint=$item["charge"] +$tool['charge'];
-        if($dictionary["charge"]<$setPoint){
-            $setPoint =$dictionary["charge"];
+
+        $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+
+
+        if($dictionary["charge"]<$input["amount"]){
+            $input["amount"] = $dictionary["charge"];
         }
-        $xmlresult->addChild("error",0);
-        $xmlresult->addChild("kit_id",$delete_id);
+        $price = $input["amount"]*$dictionary["repair_cost"];
+        if($user["cash"]<  $price){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег");
+            echo $xmlresult->asXML();
+            return;
+        }
+        $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
+        $db->query($sql);
 
-        $sql = "UPDATE player_inventory SET charge=".$setPoint." WHERE  id ='".$input["game_id"]."' ";
+
+
+        $sql = "UPDATE game_items_dictionary SET charge=charge -". $input["amount"]." WHERE  id ='".$input["game_id"]."' ";
         $db->query($sql);
-        $sql = "DELETE FROM player_inventory WHERE id = ".$delete_id."";
-        $db->query($sql);
+
         $itmcontroller = new ItemController();
-        $sql = 'SELECT `player_inventory` . * , `game_item`.ingamekey, `inventory_item_dictionary`.class, `inventory_item_dictionary`.type, `inventory_item_dictionary`.charge AS maxcharge, `inventory_item_dictionary`.shopicon,`inventory_item_dictionary`.chars, `inventory_item_dictionary`.description, `inventory_item_dictionary`.name, `inventory_item_dictionary`.model
-FROM `player_inventory`
-LEFT JOIN `inventory_item_dictionary` ON `player_inventory`.game_id = `inventory_item_dictionary`.game_id
-LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="'.$input["uid"].'"';
 
-        $playerInventory =$db->fletch_assoc($db->query($sql));
-        $itmcontroller->loadInventory($xmlresult,$playerInventory);
+
+        $itmcontroller->loadInventory($xmlresult,$input["uid"]);
 
         echo $xmlresult->asXml();
     }
@@ -381,7 +351,8 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
                             <result>
 							</result>');
         $db = DBHolder::GetDB();
-        $sql = "SELECT * FROM `shop_items` WHERE id = '".$input['shop_item']."'";
+        $sql = "SELECT * FROM `game_items_price` AS t WHERE id = '".$input['shop_item']."' OR (t.group = (SELECT `group` FROM `game_items_price` WHERE id = '".$input['shop_item']."') AND t.group<> 0) ORDER BY `order`";
+
         $sqldata =$db->fletch_assoc($db->query($sql));
         if(!isset($sqldata[0])){
             $xmlresult->addChild("error",1);
@@ -389,86 +360,147 @@ LEFT JOIN `game_item` ON `player_inventory`.game_id = `game_item`.id WHERE uid="
             echo $xmlresult->asXML();
             return;
         }
-        $item = $sqldata[0];
-        $sql = "SELECT COUNT (*) FROM `player_inventory` WHERE uid =  '".$input['uid']."'";
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        $count =$sqldata[0];
-        if($count>=INVENTORY_MAX){
-            $xmlresult->addChild("error",1);
-            $xmlresult->addChild("errortext","Недостаточно места в инвентаре -".INVENTORY_MAX);
-            echo $xmlresult->asXML();
-            return;
-        }
-
-        //TODO: DO LOCK;
         $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $user =$sqldata[0];
-        $price=$item["price"];
-        //print_r($item);
-        switch($item["pricetype"]){
-            case "KP":
-                if($user["cash"]<  $price){
-                    $xmlresult->addChild("error",2);
-                    $xmlresult->addChild("errortext","Недостаточно денег");
-                    echo $xmlresult->asXML();
-                    return;
-                }
-                $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
-                $db->query($sql);
-                break;
-            case "GITP":
 
-                if($user["gold"]<  $price){
-                    $xmlresult->addChild("error",2);
-                    $xmlresult->addChild("errortext","Недостаточно денег ");
+
+        $item  = $sqldata[0];
+        $sql = "SELECT * FROM game_items_players WHERE item_id = '".$item["inv_id"]."'";
+        $playerinv =$db->fletch_assoc($db->query($sql));
+        if(count($playerinv)>0){
+            switch($playerinv[0]["buytype"]){
+                case "FOR_KP":
+                    if($item["type"]=="KP_PRICE"){
+                        $xmlresult->addChild("error",5);
+                        $xmlresult->addChild("errortext","Ошибка,обратитесь к администратору");
+                        echo $xmlresult->asXML();
+                        return;
+                    }
+                    break;
+                case "FOR_KP_UNBREAK":
+
+                    $xmlresult->addChild("error",5);
+                    $xmlresult->addChild("errortext","Ошибка,обратитесь к администратору");
                     echo $xmlresult->asXML();
                     return;
-                }
-                $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
-                $db->query($sql);
-                break;
-            default:
-                $xmlresult->addChild("error",3);
-                $xmlresult->addChild("errortext","Извините лот не найден".$input['shop_item']);
-                echo $xmlresult->asXML();
-                return;
-                break;
+
+                    break;
+                case "FOR_GOLD_FOREVER":
+
+                    $xmlresult->addChild("error",5);
+                    $xmlresult->addChild("errortext","Ошибка,обратитесь к администратору");
+                    echo $xmlresult->asXML();
+                    return;
+
+                    break;
+            }
         }
-        $sql = "SELECT * FROM inventory_item_dictionary WHERE id = '".$item["inv_id"]."'";
+        if(count($sqldata[0])==1){
+
+
+            $item  = $sqldata[0];
+            //TODO: DO LOCK;
+
+            $price=$item["amount"];
+            //print_r($item);
+            switch($item["type"]){
+                case "KP_PRICE":
+                    if($user["cash"]<  $price){
+                        $xmlresult->addChild("error",2);
+                        $xmlresult->addChild("errortext","Недостаточно денег");
+                        echo $xmlresult->asXML();
+                        return;
+                    }
+                    $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
+                    $db->query($sql);
+                    break;
+                  default:
+
+                    if($user["gold"]<  $price){
+                        $xmlresult->addChild("error",2);
+                        $xmlresult->addChild("errortext","Недостаточно денег ");
+                        echo $xmlresult->asXML();
+                        return;
+                    }
+                    $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
+                    $db->query($sql);
+                    break;
+
+            }
+
+        }else{
+            $sqls =array();
+            foreach( $sqldata[0] as  $item){
+                $price=$item["amount"];
+                switch($item["type"]){
+                    case "KP_PRICE":
+                        if($user["cash"]<  $price){
+                            $xmlresult->addChild("error",2);
+                            $xmlresult->addChild("errortext","Недостаточно денег");
+                            echo $xmlresult->asXML();
+                            return;
+                        }
+                        $sqls[] = " cash = cash -".$price."";
+                         break;
+
+                    default:
+
+                        if($user["gold"]<  $price){
+                            $xmlresult->addChild("error",2);
+                            $xmlresult->addChild("errortext","Недостаточно денег ");
+                            echo $xmlresult->asXML();
+                            return;
+                        }
+                        $sqls[] = " gold = gold -".$price."";
+                        break;
+                }
+            }
+
+            $sql = "UPDATE statistic SET ".implode(",",$sqls)." WHERE uid ='".$input['uid']."'";
+            $db->query($sql);
+        }
+        $item  = $sqldata[0];
+        $sql = "SELECT * FROM game_items_dictionary WHERE id = '".$item["inv_id"]."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $inventory = $sqldata[0];
 
 
-        $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,date,currency) VALUES ('".$input['uid']."','".$input['shop_item']."','1','".time()."','".($item["priceType"]=="KP"?1:0)."')";
+        $sql = "INSERT INTO `player_purchase`   (uid,item_id,amount,date,currency) VALUES ('".$input['uid']."','".$input['shop_item']."','1','".time()."','".$item["type"]."')";
         $db->query($sql);
-        switch($item["pricetype"]){
-            case "KP":
-                switch($inventory["type"]){
-                    case 'ETC':
-                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
-                        break;
-                    case 'OFFERS':
+        switch($item["type"]){
+            case "KP_PRICE":
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_KP')";
 
-                        break;
-                    default:
-
-                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','-1','".$inventory['modslot']."')";
-                }
                 break;
-            case "GITP":
-                switch($inventory["type"]){
-                    case 'ETC':
-                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','0','".$inventory['charge']."','".$inventory['modslot']."')";
-                        break;
-                    case 'OFFERS':
+            case "GOLD_PRICE_UNBREAKE":
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_KP_UNBREAK')
+                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_KP_UNBREAK'
+                ";
 
-                        break;
-                    default:
+                break;
+            case "GOLD_PRICE_FOREVER":
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_GOLD_FOREVER')
+                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_FOREVER'
+                ";
 
-                        $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,charge,modslot) VALUES ('".$input['uid']."','".$inventory['game_id']."','1','".$inventory['charge']."','".$inventory['modslot']."')";
+                break;
+            default:
+                $day_count=0;
+                switch($item["type"]){
+                    case "GOLD_PRICE_1":
+                        $day_count =GOLD_PRICE_1_DAYS;
+                        break;
+                    case "GOLD_PRICE_2":
+                        $day_count =GOLD_PRICE_2_DAYS;
+                        break;
+                    case "GOLD_PRICE_3":
+                        $day_count =GOLD_PRICE_3_DAYS;
                         break;
                 }
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`,`time_end`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_GOLD_TIME','".($day_count*86400+time())."')
+                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_TIME', time_end	 = time_end	 +'".($day_count*86400)."'
+                ";
                 break;
         }
         $db->query($sql);

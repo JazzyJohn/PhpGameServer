@@ -52,3 +52,6 @@ define("LOCAL_ADDR","37.252.125.102");
 
 define("NEWBIE_PISTOL","18");
 
+define("GOLD_PRICE_1_DAYS","1");
+define("GOLD_PRICE_2_DAYS","3");
+define("GOLD_PRICE_3_DAYS","5");
