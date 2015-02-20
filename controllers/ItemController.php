@@ -80,6 +80,7 @@ class ItemController extends BaseController{
                     $wepOne   = new SimpleXMLElement('<default></default>');
                     $wepOne->addChild("gameClass",$element["class"]);
                     $wepOne->addChild("weaponId",$element["weaponId"]);
+                    $wepOne->addChild("set",$element["set"]);
                     $domone  = dom_import_simplexml($wepOne);
                     $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
                     $domitems->appendChild($domone);
@@ -197,11 +198,12 @@ class ItemController extends BaseController{
             unset($settings[$data["class"]]) ;
             $settings[$data["class"]]= array();
         }
-        foreach($data["default"] as $element){
+        foreach($data["default"] as     $element){
             if($element==-1){
                 continue;
             }
-            $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$element);
+            $tar = explode("@set",$element);
+            $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$tar[0],"set"=>$tar[1]);
         }
         $data["robotclass"]+=5;
         if( isset($settings[$data["robotclass"]])){
