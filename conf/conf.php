@@ -28,7 +28,7 @@ define("UNITY_KEY","");
 
 
 
-define("DB_BASE_NAME","redrage");
+define("DB_BASE_NAME","redrage_new");
 define("DB_HOST", "localhost");
 define("DB_USER", "redrage_db");
 define("DB_PASSWORD", "zbRIx2&s:Z");

@@ -93,6 +93,10 @@ class OrderController extends BaseController{
                                     $sql = "UPDATE statistic SET gold = gold +".$ourItem["amount"]." WHERE uid ='".$receiver_id."'";
                                     $db->query($sql);
                                     break;
+                                case 3:
+                                    $sql = "UPDATE statistic SET cash = cash +".$ourItem["amount"]." WHERE uid ='".$receiver_id."'";
+                                    $db->query($sql);
+                                    break;
                                 case 1:
                                     $sql = "SELECT * FROM `player_opened_gameitem` WHERE uid = '".$receiver_id."' AND itid='".$ourItem["game_item_id"]."'";
                                     $sqldata =$db->fletch_assoc($db->query($sql));
@@ -253,9 +257,10 @@ class OrderController extends BaseController{
 
 
 
-        $sql = "UPDATE game_items_dictionary SET charge=charge -". $input["amount"]." WHERE  id ='".$input["game_id"]."' ";
+        $sql = "UPDATE game_items_players SET charge=charge -". $input["amount"]." WHERE  item_id ='".$input["game_id"]."' AND uid ='".$input['uid']."'";
         $db->query($sql);
-
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("errortext","");
         $itmcontroller = new ItemController();
 
 
@@ -353,8 +358,9 @@ class OrderController extends BaseController{
         $db = DBHolder::GetDB();
         $sql = "SELECT * FROM `game_items_price` AS t WHERE id = '".$input['shop_item']."' OR (t.group = (SELECT `group` FROM `game_items_price` WHERE id = '".$input['shop_item']."') AND t.group<> 0) ORDER BY `order`";
 
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        if(!isset($sqldata[0])){
+        $item_prices =$db->fletch_assoc($db->query($sql));
+
+        if(!isset($item_prices[0])){
             $xmlresult->addChild("error",1);
             $xmlresult->addChild("errortext","Извините лот не найден");
             echo $xmlresult->asXML();
@@ -365,13 +371,13 @@ class OrderController extends BaseController{
         $user =$sqldata[0];
 
 
-        $item  = $sqldata[0];
-        $sql = "SELECT * FROM game_items_players WHERE item_id = '".$item["inv_id"]."'";
+
+        $sql = "SELECT * FROM game_items_players WHERE item_id = '".$item_prices[0]["inv_id"]."'";
         $playerinv =$db->fletch_assoc($db->query($sql));
         if(count($playerinv)>0){
             switch($playerinv[0]["buytype"]){
                 case "FOR_KP":
-                    if($item["type"]=="KP_PRICE"){
+                    if($item_prices[0]["type"]=="KP_PRICE"){
                         $xmlresult->addChild("error",5);
                         $xmlresult->addChild("errortext","Ошибка,обратитесь к администратору");
                         echo $xmlresult->asXML();
@@ -396,14 +402,15 @@ class OrderController extends BaseController{
                     break;
             }
         }
-        if(count($sqldata[0])==1){
+
+        if(count($item_prices)==1){
 
 
-            $item  = $sqldata[0];
+            $item  = $item_prices[0];
             //TODO: DO LOCK;
-
+            $inv_id = $item["inv_id"];
             $price=$item["amount"];
-            //print_r($item);
+          //  print_r($item);
             switch($item["type"]){
                 case "KP_PRICE":
                     if($user["cash"]<  $price){
@@ -431,7 +438,7 @@ class OrderController extends BaseController{
 
         }else{
             $sqls =array();
-            foreach( $sqldata[0] as  $item){
+            foreach( $item_prices as  $item){
                 $price=$item["amount"];
                 switch($item["type"]){
                     case "KP_PRICE":
@@ -460,7 +467,7 @@ class OrderController extends BaseController{
             $sql = "UPDATE statistic SET ".implode(",",$sqls)." WHERE uid ='".$input['uid']."'";
             $db->query($sql);
         }
-        $item  = $sqldata[0];
+        $item  = $item_prices[0];
         $sql = "SELECT * FROM game_items_dictionary WHERE id = '".$item["inv_id"]."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $inventory = $sqldata[0];
@@ -470,17 +477,17 @@ class OrderController extends BaseController{
         $db->query($sql);
         switch($item["type"]){
             case "KP_PRICE":
-                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_KP')";
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES('".$input['uid']."','".$inventory["id"]."','FOR_KP')";
 
                 break;
             case "GOLD_PRICE_UNBREAKE":
-                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_KP_UNBREAK')
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES('".$input['uid']."','".$inventory["id"]."','FOR_KP_UNBREAK')
                   ON DUPLICATE KEY UPDATE `buytype` = 'FOR_KP_UNBREAK'
                 ";
 
                 break;
             case "GOLD_PRICE_FOREVER":
-                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_GOLD_FOREVER')
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES('".$input['uid']."','".$inventory["id"]."','FOR_GOLD_FOREVER')
                   ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_FOREVER'
                 ";
 
@@ -498,7 +505,7 @@ class OrderController extends BaseController{
                         $day_count =GOLD_PRICE_3_DAYS;
                         break;
                 }
-                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`,`time_end`) VALUES(".$input['uid'].",'".$inventory["id"]."','FOR_GOLD_TIME','".($day_count*86400+time())."')
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`,`time_end`) VALUES('".$input['uid']."','".$inventory["id"]."','FOR_GOLD_TIME','".($day_count*86400+time())."')
                   ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_TIME', time_end	 = time_end	 +'".($day_count*86400)."'
                 ";
                 break;

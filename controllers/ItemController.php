@@ -80,7 +80,11 @@ class ItemController extends BaseController{
                     $wepOne   = new SimpleXMLElement('<default></default>');
                     $wepOne->addChild("gameClass",$element["class"]);
                     $wepOne->addChild("weaponId",$element["weaponId"]);
-                    $wepOne->addChild("set",$element["set"]);
+                    if(isset($element["set"])){
+                         $wepOne->addChild("set",$element["set"]);
+                    }else{
+                        $wepOne->addChild("set",0);
+                    }
                     $domone  = dom_import_simplexml($wepOne);
                     $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
                     $domitems->appendChild($domone);
@@ -148,8 +152,9 @@ class ItemController extends BaseController{
         $sql = ' SELECT COUNT(*) FROM `game_items_players` WHERE uid ="'.$uid.'"';
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
+
         if($sqldata['COUNT(*)']==0){
-            $sql = ' INSERT INTO `game_items_players`  (`uid`,`	item_id`,`buytype`) VALUES ("'.$uid.'","'.NEWBIE_PISTOL.'","FOR_KP")';
+            $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$uid.'","'.NEWBIE_PISTOL.'","FOR_KP")';
             $db->query($sql);
         }
     }
@@ -162,8 +167,8 @@ class ItemController extends BaseController{
         foreach($data["charge"]as $key=>$val){
             $ids[] = $key;
         }
-        $sql = "SELECT * FROM game_items_dictionary AS dic JOIN game_items_players AS fact ON dic.id = fact.item_id  WHERE dic.id  IN ('".$ids."') AND fact.uid =  '".$data["uid"]."'";
-        $db->query($sql);
+        $sql = "SELECT * FROM game_items_dictionary AS dic JOIN game_items_players AS fact ON dic.id = fact.item_id  WHERE dic.id  IN ('".implode(",",$ids)."') AND fact.uid =  '".$data["uid"]."'";
+       
         $sqldata =$db->fletch_assoc($db->query($sql));
         foreach($sqldata as $element){
             $add = $data["charge"][$element["id"]];
@@ -172,7 +177,7 @@ class ItemController extends BaseController{
             }else if($element["charge"]+$add>=$element["maxcharge"]){
                 $sql = "UPDATE `game_items_players` SET charge='".$element["maxcharge"]."' WHERE uid=  '".$data["uid"]."' AND item_id =  '".$element["id"]."'";
             }else{
-                $sql = "UPDATE `game_items_players` SET charge=chrage + '".$add."' WHERE uid=  '".$data["uid"]."' AND item_id =  '".$element["id"]."'";
+                $sql = "UPDATE `game_items_players` SET charge=charge + '".$add."' WHERE uid=  '".$data["uid"]."' AND item_id =  '".$element["id"]."'";
             }
 
             $db->query($sql);
@@ -265,18 +270,26 @@ class ItemController extends BaseController{
             $itemOne->addChild("description",$element['description']);
             $itemOne->addChild("name",$element['name']);
             $itemOne->addChild("model",$element['model']);
+            $itemOne->addChild("sid",$element['sid']);
             $itemOne->addChild("set",$element['set_name']);
+            $itemOne->addChild("inv_group",$element['inv_group']);
             $itemOne->addChild("repair_cost",$element['repair_cost']);
             self::parseChar($itemOne,$element['chars']);
 
-            if($element['buytype']==null){
-                $element['buytype'] ="NONE";
+            if($element['buytype']==""){
+                $itemOne->addChild("buytype",  "NONE");
                 $itemOne->addChild("time_end","");
                 $itemOne->addChild("charge",0);
                 $itemOne->addChild("modslot",0);
                 $itemOne->addChild("mods","");
             }else{
-                $itemOne->addChild("time_end",  $element['time_end']);
+
+                $itemOne->addChild("buytype",  $element['buytype']);
+                if($element['time_end']==0){
+                    $itemOne->addChild("time_end",  "");
+                }else{
+                    $itemOne->addChild("time_end", date("c", $element['time_end']));
+                }
                 $itemOne->addChild("charge",$element['charge']);
                 $itemOne->addChild("modslot",$element['modslot']);
                 $itemOne->addChild("mods",$element['mods']);

@@ -74,6 +74,8 @@ Router::addRoute("/allnews","NewsController");
 
 Router::addRoute("/order_call_back","OrderController");
 
+Router::addRoute("/chargedata","ItemController");
+
 Router::addRoute("/loadmoneyreward","RewardController");
 
 Router::addRoute("/syncmoneyreward","RewardController");
