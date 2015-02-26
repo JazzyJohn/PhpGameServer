@@ -55,3 +55,7 @@ define("NEWBIE_PISTOL","18");
 define("GOLD_PRICE_1_DAYS","1");
 define("GOLD_PRICE_2_DAYS","3");
 define("GOLD_PRICE_3_DAYS","5");
+
+define("FINISH_TASK_COST",20);
+
+define("SKIP_TASK_COST",5);
