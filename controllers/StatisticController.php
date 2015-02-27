@@ -39,6 +39,40 @@ class StatisticController extends BaseController{
         $db->query($sql);
 
 
+    }
+
+    public function statisticdata(){
+        $data =$_REQUEST;
+
+        $sql = "SELECT statisticData FROM statistic WHERE uid = '".$data['uid']."'";
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $statisticData = array();
+        if($sqldata[0]["statisticData"]==""){
+            $statisticData = json_decode($sqldata[0]["statisticData"]);
+        }
+        $killData ="";
+        foreach($data["data"] as $key=>$value){
+            if(!isset($statisticData[$key])){
+                $statisticData[$key]= 0;
+            }
+            $statisticData[$key]+=$value;
+            switch($key){
+                case "Kill":
+                    $killData= $killData.", `killCnt` =  `killCnt` + 1";
+                    break;
+                case "KillAI":
+                    $killData= $killData.", `killAi` =  `killAi` + 1";
+                    break;
+            }
+        }
+        if(isset($statisticData["AmmoSpent"])&&$statisticData["AmmoSpent"]!=0){
+            $statisticData["accuracy"]=$statisticData["AmmoHit"]/$statisticData["AmmoSpent"];
+        }else{
+            $statisticData["accuracy"]=0;
+        }
+        $sql =  "UPDATE statistic SET `statisticData` = '". json_encode($statisticData)."' ".$killData ." WHERE uid = '".$data['uid']."'";
+        $db = DBHolder::GetDB();
         $db->query($sql);
     }
 
@@ -62,7 +96,7 @@ class StatisticController extends BaseController{
        // print_r($sqldata);
         header('Content-type: text/xml');
         $xmlprofile = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
-                            <player></player>');
+                            <player><statistic></statistic></player>');
         $xmlprofile->addChild('uid',$sqldata['UID']);
         $xmlprofile->addChild('name',$sqldata['NAME']);
         $xmlprofile->addChild('kill',$sqldata['killCnt']);
@@ -75,6 +109,20 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('stamina',$sqldata['stamina']);
         $xmlprofile->addChild('premium',$sqldata['premium']==1?"true":"false");
         $xmlprofile->addChild('premiumEnd',date("c",$sqldata['premiumEnd']));
+
+        if($sqldata["statisticData"]!=""){
+            $statisticData = json_decode($sqldata["statisticData"]);
+            $domitems = dom_import_simplexml($xmlprofile->statistic);
+            foreach($statisticData as $key=>$value){
+                $statOne   = new SimpleXMLElement('<entry></entry>');
+                $statOne->addChild("value",$value);
+                $statOne->addChild("key",$key);
+
+                $domone  = dom_import_simplexml($statOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+        }
 
         $sql = "SELECT * FROM asyncnotifiers WHERE uid = '".$data['uid']."'";
         $sqldata =$db->fletch_assoc($db->query($sql));
@@ -94,6 +142,10 @@ class StatisticController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+
+
+
+
         if(isset($_REQUEST["tournament"])){
             $xmlprofile->addChild("tournament","yes");
             $sql = "SELECT uid, killCnt FROM statistic ORDER BY  killCnt DESC LIMIT 0,10";
