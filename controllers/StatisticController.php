@@ -171,6 +171,7 @@ class StatisticController extends BaseController{
 
                     $notOne   = new SimpleXMLElement('<currentoperation></currentoperation>');
                 }
+                 $mycounter =  isset($myscore[$element["id"]])?$myscore[$element["id"]]:0;
 
                 $notOne->addChild("id",$element["id"]);
                 $notOne->addChild("prizeplaces",$element["prizeplaces"]);
@@ -187,23 +188,26 @@ class StatisticController extends BaseController{
                 $sql = "SELECT * FROM operation_players WHERE oid = ".$element["id"]." ORDER BY counter  DESC LIMIT 0,10 ";
 
                 $sortedwinners =$db->fletch_assoc($db->query($sql));
+                $sql = "SELECT COUNT(oid) FROM operation_players WHERE  oid = ".$element["id"]." AND counter > ".$mycounter;
+                $place =$db->fletch_assoc($db->query($sql));
+                $place = $place[0]["COUNT(oid)"]+1;
 
-
-                    foreach($sortedwinners as $winer){
-                        $winerNode   = new SimpleXMLElement('<winners></winners>');
-                        $winerNode->addChild("uid",$winer["uid"]);
-                        $winerNode->addChild("score",$winer["counter"]);
-                        $domwin  = dom_import_simplexml($winerNode);
-                        $domwin  = $domone->ownerDocument->importNode($domwin, TRUE);
-                        $domone->appendChild($domwin);
-                    }
+                foreach($sortedwinners as $winer){
+                    $winerNode   = new SimpleXMLElement('<winners></winners>');
+                    $winerNode->addChild("uid",$winer["uid"]);
+                    $winerNode->addChild("score",$winer["counter"]);
+                    $domwin  = dom_import_simplexml($winerNode);
+                    $domwin  = $domone->ownerDocument->importNode($domwin, TRUE);
+                    $domone->appendChild($domwin);
+                }
 
                 $notOne->addChild("start",$element["start"]);
                 $notOne->addChild("end",$element["end"]);
                 $notOne->addChild("name",$element["name"]);
                 $notOne->addChild("desctiption",$element["desctiption"]);
                 $notOne->addChild("counterEvent",$element["counterEvent"]);
-                $notOne->addChild("myCounter",isset($myscore[$element["id"]])?$myscore[$element["id"]]:0);
+                $notOne->addChild("myCounter",$mycounter);
+                $notOne->addChild("myPlace",$place);
                 $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
                 $domitems->appendChild($domone);
 
