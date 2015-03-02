@@ -48,9 +48,10 @@ class StatisticController extends BaseController{
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         $statisticData = array();
-        if($sqldata[0]["statisticData"]==""){
-            $statisticData = json_decode($sqldata[0]["statisticData"]);
+        if($sqldata[0]["statisticData"]!=""){
+            $statisticData = json_decode($sqldata[0]["statisticData"],true);
         }
+        Logger::instance()->write(print_r($statisticData,true));
         $killData ="";
         foreach($data["data"] as $key=>$value){
             if(!isset($statisticData[$key])){
@@ -100,6 +101,7 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('uid',$sqldata['UID']);
         $xmlprofile->addChild('name',$sqldata['NAME']);
         $xmlprofile->addChild('kill',$sqldata['killCnt']);
+        $xmlprofile->addChild('open_set',$sqldata['open_sid']);
         $xmlprofile->addChild('death',$sqldata['death']);
         $xmlprofile->addChild('assist',$sqldata['assist']);
         $xmlprofile->addChild('robotkill',$sqldata['robotkill']);
@@ -111,7 +113,7 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('premiumEnd',date("c",$sqldata['premiumEnd']));
 
         if($sqldata["statisticData"]!=""){
-            $statisticData = json_decode($sqldata["statisticData"]);
+            $statisticData = json_decode($sqldata["statisticData"],true);
             $domitems = dom_import_simplexml($xmlprofile->statistic);
             foreach($statisticData as $key=>$value){
                 $statOne   = new SimpleXMLElement('<entry></entry>');
@@ -122,6 +124,13 @@ class StatisticController extends BaseController{
                 $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
                 $domitems->appendChild($domone);
             }
+            $statOne   = new SimpleXMLElement('<entry></entry>');
+            $statOne->addChild("value",$sqldata["daylicCnt"]);
+            $statOne->addChild("key","daylicCnt");
+
+            $domone  = dom_import_simplexml($statOne);
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
         }
 
         $sql = "SELECT * FROM asyncnotifiers WHERE uid = '".$data['uid']."'";

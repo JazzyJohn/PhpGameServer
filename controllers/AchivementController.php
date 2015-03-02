@@ -7,7 +7,7 @@ class AchivementController extends AuthController{
         $data =$_REQUEST;
         $db = DBHolder::GetDB();
 
-        $sql = "SELECT * FROM `achievement_data` WHERE uid ='".$data["uid"]."' AND time ='".strtotime(date("d-m-Y",time()))."'";
+        $sql = "SELECT * FROM `achievement_data` WHERE uid ='".$data["uid"]."'";
         $dayly=$db->fletch_assoc($db->query($sql));
         if(!isset($dayly[0]["count"])){
             $sql = "INSERT INTO `achievement_data` (`uid`, `time`)VALUES ('".$data["uid"]."', '');";
@@ -16,12 +16,14 @@ class AchivementController extends AuthController{
 
 
 
-		$sql =
-            "SELECT id,`order`,type,achievement_list.name,description,multiplie, icon,achivement_params.name AS paramname,needvalue FROM `achievement_list` INNER JOIN `achivement_params` ON achievement_list.id=achivement_params.aid WHERE achievement_list.open = 1 OR
-             (achievement_list.type=\"TASK\" AND
-             ( (previous = (SELECT `task_easy_step` FROM `achievement_data` WHERE uid =\"".$data["uid"]."\") AND `order`=1) OR
-             (previous = (SELECT `task_medium_step` FROM `achievement_data` WHERE uid =\"".$data["uid"]."\" )AND `order`=2) OR
-             (previous = (SELECT `task_hard_step` FROM `achievement_data` WHERE uid =\"".$data["uid"]."\")AND `order`=3)))";
+		$sql =    "SELECT aclist.id,aclist.reward,aclist.`order`,aclist.type,aclist.name,aclist.description,aclist.multiplie, aclist.icon,achivement_params.name AS paramname,needvalue , nextList.name as nextname, nextList.description as nextdescription , nextList.reward as nextreward FROM `achievement_list` as aclist INNER JOIN `achivement_params` ON aclist.id=achivement_params.aid
+LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
+
+ WHERE aclist.open = 1 OR
+             (aclist.type=\"TASK\" AND
+             ( (aclist.previous = (SELECT `task_easy_step` FROM `achievement_data` WHERE uid ='".$data["uid"]."') AND aclist.`order`=1) OR
+             (aclist.previous = (SELECT `task_medium_step` FROM `achievement_data` WHERE uid ='".$data["uid"]."')AND aclist.`order`=2) OR
+             (aclist.previous = (SELECT `task_hard_step` FROM `achievement_data` WHERE uid ='".$data["uid"]."')AND aclist.`order`=3)))";
 
         $sqldata =$db->fletch_assoc($db->query($sql));
 		$achivmnets = array();
@@ -53,11 +55,26 @@ class AchivementController extends AuthController{
 			$achOne->addChild("id",$element["id"]);
 			$achOne->addChild("name",$element["name"]);
 			$achOne->addChild("description",$element["description"]);
+            if($element["type"]=="TASK"){
+                $achOne->addChild("nextname",$element["nextname"]);
+                $achOne->addChild("nextdescription",$element["nextdescription"]);
+                $reward = json_decode($element["nextreward"],true);
+                $achOne->addChild("nextgoldreward",$reward["gold"]==""?0:$reward["gold"]);
+                $achOne->addChild("nextcashreward",$reward["cash"]==""?0:$reward["cash"]);
+                $achOne->addChild("nextskillreward",$reward["skill"]==""?0:$reward["skill"]);
+
+            }
+            $reward = json_decode($element["reward"],true);
+
+            $achOne->addChild("goldreward",$reward["gold"]==""?0:$reward["gold"]);
+            $achOne->addChild("cashreward",$reward["cash"]==""?0:$reward["cash"]);
+            $achOne->addChild("skillreward",$reward["skill"]==""?0:$reward["skill"]);
+
             $achOne->addChild("icon",$element["icon"]);
             $achOne->addChild("type",$element["type"]);
             $achOne->addChild("order",$element["order"]);
 			if(isset($open[$element["id"]])){
-                if($element["multiplie"]==1){
+                if($element["type"]=="DAYLIC"){
                     if($open[$element["id"]]['time']+86400<time()){
                         $achOne->addChild("ready","true");
                     }else{
@@ -74,7 +91,7 @@ class AchivementController extends AuthController{
 			}else{
 
                 $achOne->addChild("ready","true");
-                if($element["multiplie"]==1){
+                if($element["type"]=="DAYLIC"){
                     $achOne->addChild("multiplie","true");
                 }else{
                     $achOne->addChild("multiplie","false");
@@ -94,6 +111,9 @@ class AchivementController extends AuthController{
 					$domoneparam  = $domone->ownerDocument->importNode($domoneparam, TRUE);
 					$domone->appendChild($domoneparam);
 			}
+
+
+
 			$domone  = $domachiv->ownerDocument->importNode($domone, TRUE);
 			$domachiv->appendChild($domone);
 		}
@@ -121,6 +141,13 @@ class AchivementController extends AuthController{
         $addgold = 0;
 
         foreach($sqldata as $element){
+            $reward = json_decode($element["reward"],true);
+            if(isset($reward["gold"])){
+                $addgold+= $reward["gold"];
+            }
+            if(isset($reward["cash"])){
+                $addcash+= $reward["cash"];
+            }
             switch($element["type"]){
 
                 case "DAYLIC":
@@ -128,9 +155,7 @@ class AchivementController extends AuthController{
                     $addcash+= $element["cashreward"];
 
                     break;
-                case "ACHIEVEMENT":
-                    $addgold+= $element["cashreward"];
-                    break;
+
             }
         }
         $sql = "UPDATE statistic SET cash = cash +".$addcash." , gold = gold+ ".$addgold.",daylicCnt = daylicCnt + ".$addToDaylic." WHERE uid ='".$data["uid"]."'";
@@ -194,6 +219,7 @@ class AchivementController extends AuthController{
 
         $this->_finishTask($data);
         $xmlresult->addChild("error", 0);
+        $xmlresult->addChild("price",FINISH_TASK_COST);
         echo $xmlresult->asXml();
     }
     public  function _finishTask($data){
@@ -224,7 +250,7 @@ class AchivementController extends AuthController{
 
         }
         if($task>0){
-            $sql = "UPDATE `achievement_data` SET '".implode(",",$task)."' WHERE uid='".$data["uid"]."'";
+            $sql = "UPDATE `achievement_data` SET ".implode(",",$task)." WHERE uid='".$data["uid"]."'";
              $db->query($sql);
         }
 
@@ -238,6 +264,7 @@ class AchivementController extends AuthController{
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
                             <result>
 							</result>');
+       // echo SKIP_TASK_COST;
         if(SKIP_TASK_COST>$user["gold"]){
             $xmlresult->addChild("error",2);
             $xmlresult->addChild("errortext","Недостаточно денег");
@@ -267,11 +294,12 @@ class AchivementController extends AuthController{
 
         }
         if($task>0){
-            $sql = "UPDATE `achievement_data` SET '".implode(",",$task)."'";
+            $sql = "UPDATE `achievement_data` SET ".implode(",",$task)." WHERE uid='".$data["uid"]."'";;
             $db->query($sql);
         }
 
         $xmlresult->addChild("error", 0);
+        $xmlresult->addChild("price",SKIP_TASK_COST);
         echo $xmlresult->asXml();
     }
 }

@@ -550,4 +550,28 @@ class OrderController extends BaseController{
         }
 
     }
+
+    public  function buynextset(){
+        $data =$_REQUEST;
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+        // echo SKIP_TASK_COST;
+        if(OPEN_SET_PRICE>$user["gold"]){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег");
+            echo $xmlresult->asXML();
+            return;
+        }
+        $sql = "UPDATE statistic SET gold = gold -".SKIP_TASK_COST.", open_sid= open_sid + 1 WHERE uid ='".$data['uid']."'";
+        $db->query($sql);
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("errortext","");
+        $xmlresult->addChild("price",OPEN_SET_PRICE);
+        echo $xmlresult->asXML();
+    }
 }

@@ -24,7 +24,7 @@ class LevelUp {
             $lvlup->xmlresult->addChild("lvlup",$element);
         }
 
-        $sql = "SELECT * FROM `level_up` WHERE id IN ( ".implode(",",$ids).")";
+
 
         if($new_skillpoint>0){
             $sql = "INSERT INTO player_skill (`uid`,`skillpoint`) VALUES('".$uid."',".$new_skillpoint.")
@@ -34,6 +34,7 @@ class LevelUp {
         }
 
         $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM `level_up` WHERE id IN ( ".implode(",",$ids).")";
         $sqldata =$db->fletch_assoc($db->query($sql));
 
         $lvlup->uid = $uid;
@@ -51,5 +52,11 @@ class LevelUp {
         $this->xmlresult->addChild("item_reward",$itemId);
         $sql = "INSERT INTO `player_inventory`   (uid,game_id,personal,time_end,modslot) VALUES ('".$this->uid."','".$itemId."','0','".(time()+60*60*HOUR_COUNT_FOR_LVL)."','0')";
           $db->query($sql);
+    }
+    public function openSet($itemId){
+        $db = DBHolder::GetDB();
+        $this->xmlresult->addChild("open_set",$itemId);
+        $sql = "UPDATE `statistic` SET   open_set VALUES ('".$this->uid."','".$itemId."','0','".(time()+60*60*HOUR_COUNT_FOR_LVL)."','0')";
+        $db->query($sql);
     }
 } 
