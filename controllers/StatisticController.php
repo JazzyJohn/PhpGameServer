@@ -81,7 +81,7 @@ class StatisticController extends BaseController{
         $data =$_REQUEST;
 
 		///file_put_contents("log.txt",mb_detect_encoding($data["name"]));
-        $sql = "INSERT INTO statistic (`uid`,`name`) VALUES ('".$data["uid"]."','".$data["name"]."')  ON DUPLICATE KEY UPDATE ingameenter = ingameenter+1   ;";
+        $sql = "INSERT INTO statistic (`uid`,`name`,`cash`) VALUES ('".$data["uid"]."','".$data["name"]."')  ON DUPLICATE KEY UPDATE ingameenter = ingameenter+1   ;";
 		
         $db = DBHolder::GetDB();
         $db->query($sql);

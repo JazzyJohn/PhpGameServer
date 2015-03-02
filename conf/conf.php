@@ -59,3 +59,6 @@ define("GOLD_PRICE_3_DAYS","5");
 define("FINISH_TASK_COST",20);
 
 define("SKIP_TASK_COST",5);
+
+define("START_CASH",10000);
+define("START_GOLD",60);
