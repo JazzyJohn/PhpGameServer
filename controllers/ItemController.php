@@ -153,7 +153,7 @@ class ItemController extends BaseController{
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
 
-        if($sqldata['COUNT(*)']==0){
+        if($sqldata[0]['COUNT(*)']==0){
             $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$uid.'","'.NEWBIE_PISTOL.'","FOR_KP")';
             $db->query($sql);
         }

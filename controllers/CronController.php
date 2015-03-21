@@ -42,7 +42,7 @@ class CronController extends BaseController{
 
        }
         Logger::instance()->write("set new daylic " .print_r($todayIds,true));
-        $sql = "UPDATE `achievement_list`  SET open =
+      /*  $sql = "UPDATE `achievement_list`  SET open =
         CASE
         WHEN  id IN (".implode(",",$todayIds).") THEN 1
         ELSE 0
@@ -50,11 +50,14 @@ class CronController extends BaseController{
         WHERE multiplie = 1
 
         ;";
-        $db->query($sql);
+        $db->query($sql);*/
         Logger::instance()->write("set new stamina ");
         $sql = "UPDATE `statistic`  SET stamina =1  WHERE stamina=0";
 
         $db->query($sql);
+
+        $achivment = new AchivementController();
+        $achivment->daylyTask();
     }
 
 }

@@ -80,15 +80,31 @@ class StatisticController extends BaseController{
     public function addUser(){
 
         $data =$_REQUEST;
+        $uid = $data["uid"];
+        $sql = ' SELECT * FROM `statistic` WHERE uid ="'.$uid.'"';
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
 
-		///file_put_contents("log.txt",mb_detect_encoding($data["name"]));
-        $sql = "INSERT INTO statistic (`uid`,`name`,`cash`) VALUES ('".$data["uid"]."','".$data["name"]."')  ON DUPLICATE KEY UPDATE ingameenter = ingameenter+1   ;";
-		
+        $sql = "INSERT INTO statistic (`uid`,`name`,`cash`,`gold`,`lastEnter`) VALUES ('".$data["uid"]."','".$data["name"]."','".START_CASH."','".START_GOLD."','".time()."')  ON DUPLICATE KEY UPDATE ingameenter = ingameenter+1,lastEnter = ".time()." ;";
+
         $db = DBHolder::GetDB();
         $db->query($sql);
-        self::returnAllStats();
+
+        if(count($sqldata)==0){
+             $sql = ' INSERT INTO `notify`  (`uid`) VALUES ("'.$uid.'")';
+            $db->query($sql);
+            $reward =new DaylyReward(false);
+
+        }else{
+            $reward =new DaylyReward($sqldata[0]);
+
+        }
+        $notifys = $reward->resolved();
+		///file_put_contents("log.txt",mb_detect_encoding($data["name"]));
+
+        self::returnAllStats($notifys);
     }
-    public static function returnAllStats(){
+    public static function returnAllStats($notifys = array()){
         $data =$_REQUEST;
         $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
         $db = DBHolder::GetDB();
@@ -117,7 +133,11 @@ class StatisticController extends BaseController{
             $domitems = dom_import_simplexml($xmlprofile->statistic);
             foreach($statisticData as $key=>$value){
                 $statOne   = new SimpleXMLElement('<entry></entry>');
-                $statOne->addChild("value",$value);
+                if($key=="accuracy"){
+                    $statOne->addChild("value",(int)($value*100));
+                }else{
+                    $statOne->addChild("value",$value);
+                }
                 $statOne->addChild("key",$key);
 
                 $domone  = dom_import_simplexml($statOne);
@@ -152,7 +172,17 @@ class StatisticController extends BaseController{
             $domitems->appendChild($domone);
         }
 
+        foreach($notifys as $element){
+            $notOne   = new SimpleXMLElement('<notify></notify>');
+            $notOne->addChild("type",$element["type"]);
+            foreach($element["params"] as $param){
+                $notOne->addChild("param",$param);
+            }
 
+            $domone  = dom_import_simplexml($notOne);
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
+        }
 
 
         if(isset($_REQUEST["tournament"])){
@@ -274,6 +304,46 @@ class StatisticController extends BaseController{
 
             }
         }
+        if(isset($_REQUEST["premium"])){
+            $sql = "SELECT * FROM `premium_skill`";
+            $skills =$db->fletch_assoc($db->query($sql));
+
+            $sql = "SELECT * FROM `premium_players` WHERE uid = `".$data['uid']."`";
+            $data =$db->fletch_assoc($db->query($sql));
+            if(isset($data[0]["data"])){
+                $data = json_decode($data[0]['data'],true);
+            }else{
+                $data= array();
+            }
+            $domitems = dom_import_simplexml($xmlprofile);
+            foreach($skills as $element){
+                $notOne   = new SimpleXMLElement('<premiumskill></premiumskill>');
+                $notOne->addChild("id",$element["id"]);
+                $notOne->addChild("type",$element["type"]);
+                $notOne->addChild("gameData",$element["gameData"]);
+                $notOne->addChild("maxAmount",$element["maxAmount"]==1);
+                $tar = explode(",",$element["eventTriggers"]);
+                foreach($tar as $event){
+                    $notOne->addChild("eventTriggers",$event);
+                }
+                $tar = explode(",",$element["price"]);
+                foreach($tar as $event){
+                    $notOne->addChild("price",$event);
+                }
+                $notOne->addChild("team",$element["team"]);
+                if(isset($data[$element["id"]])){
+                    $notOne->addChild("timeEnd",$data[$element["id"]]);
+                }else{
+                    $notOne->addChild("timeEnd","");
+                }
+                $domone  = dom_import_simplexml($notOne);
+                $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                $domitems->appendChild($domone);
+            }
+
+
+
+        }
         echo $xmlprofile->asXML();
     }
 
@@ -284,30 +354,34 @@ class StatisticController extends BaseController{
 		 include "static/form.php";
 		 return;
 		}
-        $sql = "SELECT uid FROM statistic";
+
+        $sql = "SELECT uid FROM notify";
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         $token = self::getVKAUTH();
-		  Logger::instance()->write($token );
+        Logger::instance()->write($token );
         $VK = new vkapi(self::$api_id, self::$secret_key);
         $i=0;
         while($i<count($sqldata)){
             $uids =array();
+
             for(;$i<count($sqldata);$i++){
-				if($sqldata[$i]['uid']>0){
-					$uids[] = $sqldata[$i]['uid'];
-					if(count($uids)>=99){
-						break;
-					}
-				}
+                if($sqldata[$i]['uid']>0){
+                    $uids[] = $sqldata[$i]['uid'];
+                    if(count($uids)>=99){
+                        break;
+                    }
+                }
             }
 
 
             $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>$data["message"],"client_secret"=>$token));
 
-			Logger::instance()->write(print_r($resp,true) );
-		print_r($resp);
+            Logger::instance()->write(print_r($resp,true) );
+            print_r($resp);
         }
+
+
 
 
 
@@ -323,4 +397,69 @@ class StatisticController extends BaseController{
     }
 	 
 
+    public function buyPremiumSkill(){
+        header('Content-type: text/xml');
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+        $input = $_REQUEST;
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM `premium_skill` WHERE id = '".$input["itemid"]."'";
+        $skills =$db->fletch_assoc($db->query($sql));
+
+        $sql = "SELECT * FROM `premium_players` WHERE uid = `".$input['uid']."`";
+        $data =$db->fletch_assoc($db->query($sql));
+        if(isset($data[0]["data"])){
+            $data = json_decode($data[0]['data'],true);
+        }else{
+            $data= array();
+        }
+        $skill = $skills[0];
+        $price =     explode(",",$skill["price"]);
+        $price = $price[$input["price"]];
+        $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+
+        if($user["gold"]<  $price){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег");
+            echo $xmlresult->asXML();
+            return;
+        }
+        $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
+        $db->query($sql);
+        $addTime = 0;
+        switch($input["price"]){
+            case 0:
+                $addTime =SKILL_PRICE_1_DAYS;
+                break;
+            case 1:
+                $addTime =SKILL_PRICE_2_DAYS;
+                break;
+            case 2:
+                $addTime =SKILL_PRICE_3_DAYS;
+                break;
+        }
+        if(isset($data[$skill["id"]])&&$data[$skill["id"]]>time()){
+
+            $newTime = $data[$skill["id"]]+$addTime*86400;
+        }else{
+            $newTime = time()+$addTime*86400;
+        }
+        $data[$skill["id"]]=$newTime;
+        $data = json_encode($data);
+        $sql = "INSERT INTO premium_players (`uid`,`data`) VALUES ('".$data["uid"]."','".$data."')  ON DUPLICATE KEY UPDATE data ='".$data."' ;";
+        $db->query($sql);
+        $domitems = dom_import_simplexml($xmlresult);
+        foreach($skills as $element){
+            $notOne   = new SimpleXMLElement('<premiumskill></premiumskill>');
+            $notOne->addChild("id",$element["id"]);
+            $notOne->addChild("timeEnd",$newTime);
+
+            $domone  = dom_import_simplexml($notOne);
+            $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+            $domitems->appendChild($domone);
+        }
+    }
 }

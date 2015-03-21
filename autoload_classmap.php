@@ -28,4 +28,5 @@ return array(
 	'Logger' => dirname(__FILE__) . '/classes/Logger.php',
     'vkapi' => dirname(__FILE__) . '/classes/vkapi.class.php',
     'LevelUp' => dirname(__FILE__) . '/classes/LevelUp.php',
+    'DaylyReward' => dirname(__FILE__) . '/classes/DaylyReward.php',
 );

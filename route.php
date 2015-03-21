@@ -94,7 +94,7 @@ Router::addRoute("/saveoperation","TournamentController");
 
 Router::addRoute("/operations","AdminController");
 
-Router::addRoute("/daylyTask","AchivementController");
+Router::addRoute("/buyPremiumSkill","StatisticController");
 
 Router::addRoute("/finishTask","AchivementController");
 

@@ -3,7 +3,7 @@
 
 
 class LevelController extends AuthController{
-	static $CLASSCOUNT =4;
+	static $CLASSCOUNT =0;
 
 	public function loadlvl(){
 		$data =$_REQUEST;

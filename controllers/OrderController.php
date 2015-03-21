@@ -372,7 +372,7 @@ class OrderController extends BaseController{
 
 
 
-        $sql = "SELECT * FROM game_items_players WHERE item_id = '".$item_prices[0]["inv_id"]."'";
+        $sql = "SELECT * FROM game_items_players WHERE item_id = '".$item_prices[0]["inv_id"]."' AND  uid = '".$input['uid']."'";
         $playerinv =$db->fletch_assoc($db->query($sql));
         if(count($playerinv)>0){
             switch($playerinv[0]["buytype"]){
@@ -506,7 +506,10 @@ class OrderController extends BaseController{
                         break;
                 }
                 $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`,`time_end`) VALUES('".$input['uid']."','".$inventory["id"]."','FOR_GOLD_TIME','".($day_count*86400+time())."')
-                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_TIME', time_end	 = time_end	 +'".($day_count*86400)."'
+                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_TIME', time_end	 = CASE \n"
+                    . " WHEN (`time_end`> ".time().") THEN  time_end	 +'".($day_count*86400)."'\n"
+                     . " ELSE   '".(time() + $day_count*86400)."\N'
+                     END
                 ";
                 break;
         }

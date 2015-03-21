@@ -12,6 +12,9 @@ class AchivementController extends AuthController{
         if(!isset($dayly[0]["count"])){
             $sql = "INSERT INTO `achievement_data` (`uid`, `time`)VALUES ('".$data["uid"]."', '');";
             $db->query($sql);
+
+            $sql = "SELECT * FROM `achievement_data` WHERE uid ='".$data["uid"]."'";
+            $dayly=$db->fletch_assoc($db->query($sql));
         }
 
 
@@ -58,17 +61,27 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
             if($element["type"]=="TASK"){
                 $achOne->addChild("nextname",$element["nextname"]);
                 $achOne->addChild("nextdescription",$element["nextdescription"]);
-                $reward = json_decode($element["nextreward"],true);
-                $achOne->addChild("nextgoldreward",$reward["gold"]==""?0:$reward["gold"]);
-                $achOne->addChild("nextcashreward",$reward["cash"]==""?0:$reward["cash"]);
-                $achOne->addChild("nextskillreward",$reward["skill"]==""?0:$reward["skill"]);
+                $reward = explode("/",$element["nextreward"]);
+                $achOne->addChild("nextgoldreward",$reward[0]==""?0:$reward[0]);
+                $achOne->addChild("nextcashreward",$reward[1]==""?0:$reward[1]);
+                $achOne->addChild("nextskillreward",$reward[2]==""?0:$reward[2]);
+                switch($element["order"]){
+                    case "1":
+                        $achOne->addChild("progress",isset($dayly[0]["task_easy_progress"])?$dayly[0]["task_easy_progress"]:0);
+                        break;
+                    case "2":
+                        $achOne->addChild("progress",isset($dayly[0]["task_medium_progress"])?$dayly[0]["task_medium_progress"]:0);
+                        break;
+                    case "3":
+                        $achOne->addChild("progress",isset($dayly[0]["task_hard_progress"])?$dayly[0]["task_hard_progress"]:0);
+                        break;
+                }
 
             }
-            $reward = json_decode($element["reward"],true);
-
-            $achOne->addChild("goldreward",$reward["gold"]==""?0:$reward["gold"]);
-            $achOne->addChild("cashreward",$reward["cash"]==""?0:$reward["cash"]);
-            $achOne->addChild("skillreward",$reward["skill"]==""?0:$reward["skill"]);
+            $reward = explode("/",$element["reward"]);
+            $achOne->addChild("goldreward",$reward[0]==""?0:$reward[0]);
+            $achOne->addChild("cashreward",$reward[1]==""?0:$reward[1]);
+            $achOne->addChild("skillreward",$reward[2]==""?0:$reward[2]);
 
             $achOne->addChild("icon",$element["icon"]);
             $achOne->addChild("type",$element["type"]);
@@ -132,21 +145,26 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
             $array[] = "('".$data["uid"]."',".$element.",'1','".$today."')";
         }
         $db = DBHolder::GetDB();
+        if(count($array)>0){
             $sql = "INSERT INTO `achivement_opened` (`uid`,`aid`,`amount`,`time`)  VALUES ".implode(",",$array)."  ON DUPLICATE KEY UPDATE amount = amount+1, time = ".time();
-        $db->query($sql);
+            $db->query($sql);
+        }
         $sql = "SELECT * FROM `achievement_list` WHERE id IN (".implode(",",$data["ids"] ).")";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $addToDaylic = 0;
         $addcash = 0;
         $addgold = 0;
-
+        $addskill = 0;
         foreach($sqldata as $element){
-            $reward = json_decode($element["reward"],true);
-            if(isset($reward["gold"])){
-                $addgold+= $reward["gold"];
+            $reward = explode("/",$element["reward"]);
+            if(isset($reward[0])){
+                $addgold+= $reward[0];
             }
-            if(isset($reward["cash"])){
-                $addcash+= $reward["cash"];
+            if(isset($reward[1])){
+                $addcash+= $reward[1];
+            }
+            if(isset($reward[2])){
+                $addcash+= $reward[2];
             }
             switch($element["type"]){
 
@@ -158,6 +176,28 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
 
             }
         }
+        $progress = array();
+        foreach($data["daylicProggress"] as $key=>$element){
+               switch($key){
+                   case 1:
+                       $progress[] = "task_easy_progress=".$element;
+                       break;
+                   case 2:
+                       $progress[] = "task_medium_progress=".$element;
+                       break;
+                   case 3:
+                       $progress[] = "task_hard_progress=".$element;
+                       break;
+
+               }
+
+         }
+
+        if(count($progress)>0){
+         $progress= ", ".implode(",",$progress);
+        }else{
+            $progress ="";
+        }
         $sql = "UPDATE statistic SET cash = cash +".$addcash." , gold = gold+ ".$addgold.",daylicCnt = daylicCnt + ".$addToDaylic." WHERE uid ='".$data["uid"]."'";
 
         $db->query($sql);
@@ -168,8 +208,13 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
             . " ELSE `count` +".$addToDaylic." \n"
             . "END,\n".
 
-           "time =  ".$today." WHERE `uid`='".$data["uid"]."'  ";
+           "time =  ".$today." ".$progress." WHERE `uid`='".$data["uid"]."'  ";
         $db->query($sql);
+        if($addskill>0){
+            $sql = "INSERT INTO player_skill (`uid`,`skillpoint`) VALUES('".$data["uid"]."',".$addskill.")
+                 ON DUPLICATE KEY UPDATE skillpoint  = skillpoint +".$addskill."  ;";
+            $db->query($sql);
+        }
         $sql = "SELECT * FROM `achievement_data` WHERE uid ='".$data["uid"]."' AND time ='".$today."'";
         $dayly=$db->fletch_assoc($db->query($sql));
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
@@ -190,12 +235,61 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
 
     public function daylyTask(){
         $db = DBHolder::GetDB();
-        $sql = "SELECT uid FROM `statistic`";
+        $sql = "SELECT uid,lastEnter FROM `statistic`";
         $sqldata =$db->fletch_assoc($db->query($sql));
+        $finishedids = array();
+        $notfinishedids = array();
         foreach($sqldata as $element){
-            $this->_finishTask(array("uid"=>$element["uid"]));
+           $finished = $this->_finishTask(array("uid"=>$element["uid"]));
+            if($finished){
+                $finishedids[] = $element["uid"];
+            }else{
+                if($element["lastEnter"]+86400>time()){
+                     $notfinishedids[] = $element["uid"];
+                }
+            }
         }
+        $token = self::getVKAUTH();
+        Logger::instance()->write($token );
+        $VK = new vkapi(self::$api_id, self::$secret_key);
+        $i=0;
+        while($i<count($finishedids)){
+            $uids =array();
 
+            for(;$i<count($finishedids);$i++){
+                if($finishedids[$i]>0){
+                    $uids[] =$finishedids[$i];
+                    if(count($uids)>=99){
+                        break;
+                    }
+                }
+            }
+
+
+            $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>NEW_TASK_MESSAGE,"client_secret"=>$token));
+
+            Logger::instance()->write(print_r($resp,true) );
+            print_r($resp);
+        }
+       $i=0;
+        while($i<count($notfinishedids)){
+            $uids =array();
+
+            for(;$i<count($notfinishedids);$i++){
+                if($notfinishedids[$i]>0){
+                    $uids[] = $notfinishedids[$i];
+                    if(count($uids)>=99){
+                        break;
+                    }
+                }
+            }
+
+
+            $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>OLD_TASK_MESSAGE,"client_secret"=>$token));
+
+            Logger::instance()->write(print_r($resp,true) );
+            print_r($resp);
+        }
     }
 
     public  function finishTask(){
@@ -217,12 +311,12 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         $sql = "UPDATE statistic SET gold = gold -".FINISH_TASK_COST." WHERE uid ='".$data['uid']."'";
         $db->query($sql);
 
-        $this->_finishTask($data);
+        $this->_finishTask($data,true);
         $xmlresult->addChild("error", 0);
         $xmlresult->addChild("price",FINISH_TASK_COST);
         echo $xmlresult->asXml();
     }
-    public  function _finishTask($data){
+    public  function _finishTask($data,$reset =false){
         $db = DBHolder::GetDB();
 
 
@@ -233,26 +327,42 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         $sql = "SELECT * FROM  `achievement_list` LEFT JOIN  `achivement_opened` ON (`achivement_opened`.`aid` = `achievement_list` .`id`AND  `uid` = '".$data["uid"]."') WHERE `previous` IN  (".implode(",",$ids).")";
         $sqldata =$db->fletch_assoc($db->query($sql));
         $task=array();
+        $reset = array();
         foreach($sqldata as $element){
             if($element["amount"]>0){
                 switch($element["order"]){
                     case "1":
                         $task[]= "task_easy_step = '".$element["id"]."'";
+                        $reset["1"] = "task_easy_progress=0 ";
                         break;
                     case "2":
                         $task[]= "task_medium_step = '".$element["id"]."'";
+                        $reset["2"] = "task_medium_progress=0 ";
                         break;
                     case "3":
                         $task[]= "task_hard_step = '".$element["id"]."'";
+                        $reset["3"] = "task_hard_progress=0 ";
                         break;
                 }
             }
 
         }
-        if($task>0){
-            $sql = "UPDATE `achievement_data` SET ".implode(",",$task)." WHERE uid='".$data["uid"]."'";
-             $db->query($sql);
+        if($reset){
+            $reset["1"] ="task_easy_progress=0";
+            $reset["2"] ="task_medium_progress=0";
+            $reset["3"] ="task_hard_progress=0";
         }
+        if(count($task)>0){
+            if(count($reset)>0){
+            $sql = "UPDATE `achievement_data` SET ".implode(",",$task).", ".implode(",",$reset)."   WHERE uid='".$data["uid"]."'";
+
+            }else{
+                $sql = "UPDATE `achievement_data` SET ".implode(",",$task)."  WHERE uid='".$data["uid"]."'";
+            }
+             $db->query($sql);
+            return true;
+        }
+        return false;
 
     }
     public  function skipTask(){
@@ -282,13 +392,13 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         foreach($sqldata as $element){
             switch($element["order"]){
                 case "1":
-                    $task[]= "task_easy_step = '".$element["id"]."'";
+                    $task[]= "task_easy_step = '".$element["id"]."',task_easy_progress=0 ";
                     break;
                 case "2":
-                    $task[]= "task_medium_step = '".$element["id"]."'";
+                    $task[]= "task_medium_step = '".$element["id"]."',task_medium_progress=0";
                     break;
                 case "3":
-                    $task[]= "task_hard_step = '".$element["id"]."'";
+                    $task[]= "task_hard_step = '".$element["id"]."',task_hard_progress=0";
                     break;
             }
 

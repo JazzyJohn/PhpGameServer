@@ -28,7 +28,7 @@ define("UNITY_KEY","");
 
 
 
-define("DB_BASE_NAME","redrage_new");
+define("DB_BASE_NAME","redrage");
 define("DB_HOST", "localhost");
 define("DB_USER", "redrage_db");
 define("DB_PASSWORD", "zbRIx2&s:Z");
@@ -56,6 +56,11 @@ define("GOLD_PRICE_1_DAYS","1");
 define("GOLD_PRICE_2_DAYS","3");
 define("GOLD_PRICE_3_DAYS","5");
 
+define("SKILL_PRICE_1_DAYS","1");
+define("SKILL_PRICE_2_DAYS","3");
+define("SKILL_PRICE_3_DAYS","30");
+
+
 define("FINISH_TASK_COST",20);
 
 define("SKIP_TASK_COST",5);
@@ -63,6 +68,8 @@ define("SKIP_TASK_COST",5);
 
 define("OPEN_SET_PRICE",10);
 
-define("START_CASH",10000);
-define("START_GOLD",60);
+define("START_CASH",20000);
+define("START_GOLD",80);
 
+define("NEW_TASK_MESSAGE","Солдат! Задача выполнена. Явитесь в штаб для получения новой.");
+define("OLD_TASK_MESSAGE","Солдат! Задача не выполнена. Выдвигайтесь на фронт для выполнения задачи.");

@@ -18,7 +18,7 @@ class LevelUp {
         $new_skillpoint= 0;
         foreach($ups as$element){
             $ids[] = '"'.$element["class"]."_".$element["lvl"].'"';
-            if($element["class"]!=-1){
+            if($element["class"]==-1){
                 $new_skillpoint++;
             }
             $lvlup->xmlresult->addChild("lvlup",$element);
