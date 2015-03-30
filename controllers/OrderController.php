@@ -230,7 +230,7 @@ class OrderController extends BaseController{
             return;
         }
         $dictionary = $sqldata[0];
-        if($dictionary["maxcharge"]==$dictionary["charge"]){
+        if(0==$dictionary["charge"]){
             $xmlresult->addChild("error",1);
             echo $xmlresult->asXML();
             return;
@@ -555,6 +555,7 @@ class OrderController extends BaseController{
     }
 
     public  function buynextset(){
+        header('Content-type: text/xml');
         $data =$_REQUEST;
         $db = DBHolder::GetDB();
         $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
@@ -564,17 +565,22 @@ class OrderController extends BaseController{
                             <result>
 							</result>');
         // echo SKIP_TASK_COST;
-        if(OPEN_SET_PRICE>$user["gold"]){
+
+        $open_price = $GLOBALS["OPEN_SET_PRICE"][$user["open_sid"]+1];
+
+
+        if($open_price>$user["gold"]){
             $xmlresult->addChild("error",2);
             $xmlresult->addChild("errortext","Недостаточно денег");
             echo $xmlresult->asXML();
             return;
         }
-        $sql = "UPDATE statistic SET gold = gold -".SKIP_TASK_COST.", open_sid= open_sid + 1 WHERE uid ='".$data['uid']."'";
+
+        $sql = "UPDATE statistic SET gold = gold -".$open_price.", open_sid= open_sid + 1 WHERE uid ='".$data['uid']."'";
         $db->query($sql);
         $xmlresult->addChild("error",0);
         $xmlresult->addChild("errortext","");
-        $xmlresult->addChild("price",OPEN_SET_PRICE);
+        $xmlresult->addChild("price",$open_price);
         echo $xmlresult->asXML();
     }
 }

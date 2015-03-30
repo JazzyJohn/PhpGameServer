@@ -103,3 +103,5 @@ Router::addRoute("/skipTask","AchivementController");
 Router::addRoute("/statisticdata","StatisticController");
 
 Router::addRoute("/buynextset","OrderController");
+
+Router::addRoute("/socialPrize","StatisticController");

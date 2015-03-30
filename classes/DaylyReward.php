@@ -10,7 +10,7 @@
 class DaylyReward{
 
     public static $array_date = array(
-        array(
+       /* array(
             "type"=>"HOLIDAY",
             "date"=>"09.05.2015",
             "reward"=>array(
@@ -47,7 +47,7 @@ class DaylyReward{
                     "gold"=>0
                 )
             )
-        )
+        )*/
 
 
 
@@ -55,8 +55,9 @@ class DaylyReward{
     );
 
 
-    public  function __construct($user) {
+    public  function __construct($user,$uid) {
         $this->user =$user;
+        $this->uid =$uid;
     }
 
     public function resolved(){
@@ -77,16 +78,33 @@ class DaylyReward{
                     }
                     break;
                 case  'DAYENTER':
-                    if($this->yesturday()&&$this->user["dayEnter"]+1==$element["dayenter"]){
-                        $sql =  "UPDATE statistic SET `dayEnter` = ".$element["dayenter"]." WHERE uid = '".$this->user['uid']."'";
-                        $db = DBHolder::GetDB();
-                        $db->query($sql);
+                    if($this->yesturday()&&$this->user["dayEnter"]+1==$element["dayEnter"]){
+
                         $notify[] = array("type"=>"dayReward","params"=>$element["notify"]);
                         self::resolve_reward($element['reward']);
                     }
                     break;
 
             }
+        }
+        if($this->user!=false){
+            $yesterday  =date('d.m.Y',strtotime("-1 days"));
+            $today = date("d.m.Y");
+            if($yesterday  ===date('d.m.Y',$this->user["lastEnter"])){
+                $sql =  "UPDATE statistic SET `dayEnter` = dayEnter+1 WHERE uid = '". $this->uid."'";
+                $db = DBHolder::GetDB();
+                $db->query($sql);
+            }else{
+                if(date('d.m.Y',$this->user["lastEnter"])!=$today){
+                    $sql =  "UPDATE statistic SET `dayEnter` = 1 WHERE uid = '". $this->uid."'";
+                    $db = DBHolder::GetDB();
+                    $db->query($sql);
+                }
+            }
+        }else{
+            $sql =  "UPDATE statistic SET `dayEnter` = 1 WHERE uid = '". $this->uid."'";
+            $db = DBHolder::GetDB();
+            $db->query($sql);
         }
         return $notify;
 
@@ -96,15 +114,11 @@ class DaylyReward{
             return false;
         }
         $yesterday  =date('d.m.Y',strtotime("-1 days"));
-        $today = date("d.m.Y");
-        if($yesterday  ==$this->user["lastEnter"]){
+
+        if($yesterday  ==date('d.m.Y',$this->user["lastEnter"])){
             return true;
         }else{
-            if($this->user["lastEnter"]!=$today){
-                $sql =  "UPDATE statistic SET `dayEnter` = 0 WHERE uid = '".$this->user['uid']."'";
-                $db = DBHolder::GetDB();
-                $db->query($sql);
-            }
+
             return false;
         }
 
@@ -115,7 +129,7 @@ class DaylyReward{
         foreach($reward as $element){
             switch($element["type"]){
                 case 'MONEY':
-                    $sql =  "UPDATE statistic SET `cash` = `cash` + ".$element["cash"]." , `gold` = `gold` + ".$element["gold"]." WHERE uid = '".$this->user['uid']."'";
+                    $sql =  "UPDATE statistic SET `cash` = `cash` + ".$element["cash"]." , `gold` = `gold` + ".$element["gold"]." WHERE uid = '". $this->uid."'";
                     $db->query($sql);
                     break;
                 case 'ITEM':

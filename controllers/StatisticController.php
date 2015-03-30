@@ -93,10 +93,10 @@ class StatisticController extends BaseController{
         if(count($sqldata)==0){
              $sql = ' INSERT INTO `notify`  (`uid`) VALUES ("'.$uid.'")';
             $db->query($sql);
-            $reward =new DaylyReward(false);
+            $reward =new DaylyReward(false,$uid);
 
         }else{
-            $reward =new DaylyReward($sqldata[0]);
+            $reward =new DaylyReward($sqldata[0],$sqldata[0]["UID"]);
 
         }
         $notifys = $reward->resolved();
@@ -388,12 +388,7 @@ class StatisticController extends BaseController{
     }
 
     public function globalerrorlog(){
-        $data =$_REQUEST;
-        $sql = "INSERT INTO errorlog (`uid`,`time`,`logString`,`stackTrace`) VALUES ('".$data["uid"]."','".$data["time"]."','".$data["logString"]."','".$data["stackTrace"]."');";
 
-
-        $db = DBHolder::GetDB();
-        $db->query($sql);
     }
 	 
 
@@ -461,5 +456,66 @@ class StatisticController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+    }
+
+    public function socialPrize(){
+        $input = $_REQUEST;
+        $sql = "SELECT * FROM vk_events WHERE uid = '".$input['uid']."'";
+        $db = DBHolder::GetDB();
+        $data =$db->fletch_assoc($db->query($sql));
+        if(isset($data[0]["steps"])){
+            $answer = json_decode($data[0]["steps"],true);
+        }else{
+            $answer =array();
+        }
+
+        if($answer["finished"]==1){
+            echo 1;
+            return;
+        }
+        if($answer["invite"]==0){
+            if($input["invite"]==0){
+                echo 0;
+
+                return;
+            }
+        }
+        $answer["invite"]=1;
+        if($answer["friends"]==0){
+            if($input["friends"]==0){
+                echo 0;
+                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
+                $db->query($sql);
+                return;
+            }
+        }
+        $answer["friends"]=1;
+        if($answer["group"]==0){
+            if($input["group"]==0){
+                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
+                $db->query($sql);
+                return;
+            }
+        }
+        $answer["group"]=1;
+
+
+        if($answer["bookmarks"]==0){
+            if($input["bookmarks"]==0){
+
+                echo 0;
+                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
+                $db->query($sql);
+                return;
+            }
+        }
+        $answer["bookmarks"]=1;
+
+        $sql =  "UPDATE statistic SET `cash` = `cash` + ".VIRAL_CASH." , `gold` = `gold` + ".VIRAL_GOLD." WHERE uid = '". $input['uid']."'";
+        $db->query($sql);
+        $answer["finished"]=1;
+        $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
+        $db->query($sql);
+        echo 1;
     }
 }

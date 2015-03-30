@@ -240,7 +240,7 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         $finishedids = array();
         $notfinishedids = array();
         foreach($sqldata as $element){
-           $finished = $this->_finishTask(array("uid"=>$element["uid"]));
+           $finished = $this->_finishTask(array("uid"=>$element["uid"]),true);
             if($finished){
                 $finishedids[] = $element["uid"];
             }else{
@@ -269,7 +269,7 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
             $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>NEW_TASK_MESSAGE,"client_secret"=>$token));
 
             Logger::instance()->write(print_r($resp,true) );
-            print_r($resp);
+         
         }
        $i=0;
         while($i<count($notfinishedids)){
@@ -288,7 +288,7 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
             $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>OLD_TASK_MESSAGE,"client_secret"=>$token));
 
             Logger::instance()->write(print_r($resp,true) );
-            print_r($resp);
+
         }
     }
 

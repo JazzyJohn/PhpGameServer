@@ -56,7 +56,7 @@ class LevelUp {
     public function openSet($itemId){
         $db = DBHolder::GetDB();
         $this->xmlresult->addChild("open_set",$itemId);
-        $sql = "UPDATE `statistic` SET   open_set VALUES ('".$this->uid."','".$itemId."','0','".(time()+60*60*HOUR_COUNT_FOR_LVL)."','0')";
+        $sql = "UPDATE `statistic` SET   open_set ='".$itemId."' WHERE uid = '".$this->uid."'";
         $db->query($sql);
     }
 } 
