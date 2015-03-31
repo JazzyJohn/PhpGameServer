@@ -367,19 +367,21 @@ session_write_close();
 <body>
 
 <div class="container">
-<div class="panel panel-top">
-    <div class="top-panel">
-        <a href="#" class="top-panel-point top-logo"></a>
-        <a href="#"   class="top-panel-point top-install top-active done">Установить приложение</a>
-        <a href="#" id="bookmarks" class="top-panel-point top-add">Добавить в закладки</a>
-        <a href="https://vk.com/redrage3d"  id="group" target="_blank" class="top-panel-point top-group">Вступить в группу</a>
-        <a href="#" id="invite" class="top-panel-point top-invate">Пригласить друга</a>
-        <div id="prize" class="top-panel-point top-prize">Награда 200</div>
+    <div class="panel panel-top">
+        <div class="top-panel">
+            <a href="#" class="top-panel-point top-logo"></a>
+
+            <a href="#"   class="top-panel-point top-install"></a>
+            <a href="#" id="bookmarks" class="top-panel-point top-add"></a>
+            <a href="https://vk.com/redrage3d"  id="group" target="_blank" class="top-panel-point top-group"></a>
+            <a href="#" id="invite" class="top-panel-point top-invate"></a>
+
+            <div id="prize" class="top-panel-point top-prize"></div>
+        </div>
     </div>
 </div>
-</div>
 
-<div id="unityPlayer" style="height:720px;">
+<div id="unityPlayer" style="height:720px; margin-left:20px;">
     <div class="missing">
         <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
             <img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />

@@ -1,107 +1,112 @@
+    body {
+        background-color: #051823; /* ???? ???? ???-???????? */
+    }
+		
+	.container {
+        display: block;
+        margin-right: auto;
+        margin-left: auto;
+    }
 
-body {
-    background-color: #051823; /* ???? ???? ???-???????? */
-    margin: 0 auto 0 auto;
-    position: relative;
-}
+    .panel {
+        display: block;
+        margin-right: auto;
+        margin-left: auto;
+        width: 1000px;
+    }
 
-.container {
-    display: block;
-    margin-right: auto;
-    margin-left: auto;
-}
+    .top-panel {
+        background-image: url("/img/top-panel.png");
+        width: 1000px;
+        height: 71px;
+        position: relative;
+        margin: 4px 0;
+    }
 
-.panel {
-    display: block;
-    margin-right: auto;
-    margin-left: auto;
-    width: 1000px;
-}
+    .top-panel-point {
+        position: absolute;
+        height: 43px;
+        width: 70px;
+        display: inline-block;
+        z-index: 2;
+    }
 
-.top-panel {
-    background-image: url("/static/img/top-panel.png");
-    width: 1000px;
-    height: 71px;
-    position: relative;
-    margin: 4px 0;
-}
+    .top-logo {
+        left: 15px;
+        width: 218px !important;
+    }
 
-.top-panel-point {
-    position: absolute;
-    top: 7px;
-    height: 43px;
-    width: 70px;
-    padding: 14px 32px 0 55px;
-    color: #58707f;
-    font-size: 12px;
-    font-family: "Myriad Pro";
-    text-decoration: none;
-    display: block;
-    z-index: 2;
-}
+    .top-install {
+        background: url("img/1_not_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 235px;
+    }
 
-.top-logo {
-    left: 7px;
-    width: 137px !important;
-}
+    .top-add {
+        background: url("img/4_not_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 386px;
+    }
 
-.top-add {
-    left: 388px;
-}
+    .top-group {
+        background: url("img/2_not_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 537px;
+    }
 
-.top-install {
-    left: 231px;
-}
+    .top-invate {
+        background: url("img/3_not_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 688px;
+    }
 
-.top-group {
-    left: 545px;
-}
+    .top-prize {
+        background: url("img/5_not_activ.png") no-repeat;
+        height: 71px;
+        left: 839px;
+        width: 160px !important;
+    }
+	
+	.top-panel-point:hover {
+        color: #fcfcfc;
+        text-decoration: underline;
+    }
 
-.top-invate {
-    left: 702px;
-}
+    .done {
+        background: url("img/1_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 235px;
+    }
 
-.top-prize {
-    left: 859px;
-    width: 47px !important;
-}
+    .done_2{
+        background: url("img/4_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 386px;
+    }
 
-.top-panel-point:hover {
-    color: #fcfcfc;
-    text-decoration: underline;
-}
+    .done_3{
+        background: url("img/2_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 537px;
+    }
 
-.done {
-    background-image: url("/static/img/top-active.png");
-    padding-left: 83px;
-    left: 203px;
-    color: #ffffff !important;
-}
+    .done_4{
+        background: url("img/3_activ.png") no-repeat;
+        width: 176px;
+        height: 71px;
+        left: 688px;
+    }
 
-.done_2{
-    background-image: url("/static/img/top-active.png");
-    padding-left: 83px;
-    left: 360px;
-    color: #ffffff !important;
-}
-
-.done_3{
-    background-image: url("/static/img/top-active.png");
-    padding-left: 83px;
-    left: 517px;
-    color: #ffffff !important;
-}
-
-.done_4{
-    background-image: url("/static/img/top-active.png");
-    padding-left: 83px;
-    left: 674px;
-    color: #ffffff !important;
-}
-
-.done_5 {
-    padding-left: 75px !important;
-    background-image: url("/static/img/gold-active.png");
-    color: #ffffff !important;
-    left: 839px !important;
-}
+    .done_5 {
+        background: url("img/5_activ.png") no-repeat;
+        height: 71px;
+        left: 839px;
+        width: 160px !important;
+    }
