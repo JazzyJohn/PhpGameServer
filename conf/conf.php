@@ -77,5 +77,5 @@ define("START_GOLD",80);
 
 define("NEW_TASK_MESSAGE","Солдат! Задача выполнена. Явитесь в штаб для получения новой.");
 define("OLD_TASK_MESSAGE","Солдат! Задача не выполнена. Выдвигайтесь на фронт для выполнения задачи.");
-define("VIRAL_CASH",200);
-define("VIRAL_GOLD",200);
+define("VIRAL_CASH",0);
+define("VIRAL_GOLD",100);

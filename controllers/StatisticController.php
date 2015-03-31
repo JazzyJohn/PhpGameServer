@@ -460,10 +460,10 @@ class StatisticController extends BaseController{
 
     public function socialPrize(){
         $input = $_REQUEST;
-        $sql = "SELECT * FROM vk_events WHERE uid = '".$input['uid']."'";
+        $sql = "SELECT * FROM jew_events WHERE uid = '".$input['uid']."'";
         $db = DBHolder::GetDB();
         $data =$db->fletch_assoc($db->query($sql));
-        if(isset($data[0]["steps"])){
+        if(isset($data[0]["steps"])&&$data[0]["steps"]!=""){
             $answer = json_decode($data[0]["steps"],true);
         }else{
             $answer =array();
@@ -484,7 +484,7 @@ class StatisticController extends BaseController{
         if($answer["friends"]==0){
             if($input["friends"]==0){
                 echo 0;
-                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
+                $sql =  "INSERT INTO jew_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
                 $db->query($sql);
                 return;
             }
@@ -492,7 +492,7 @@ class StatisticController extends BaseController{
         $answer["friends"]=1;
         if($answer["group"]==0){
             if($input["group"]==0){
-                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
+                $sql =  "INSERT INTO jew_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."' ";
                 $db->query($sql);
                 return;
             }
@@ -504,7 +504,7 @@ class StatisticController extends BaseController{
             if($input["bookmarks"]==0){
 
                 echo 0;
-                $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
+                $sql =  "INSERT INTO jew_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
                 $db->query($sql);
                 return;
             }
@@ -514,7 +514,7 @@ class StatisticController extends BaseController{
         $sql =  "UPDATE statistic SET `cash` = `cash` + ".VIRAL_CASH." , `gold` = `gold` + ".VIRAL_GOLD." WHERE uid = '". $input['uid']."'";
         $db->query($sql);
         $answer["finished"]=1;
-        $sql =  "INSERT INTO vk_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
+        $sql =  "INSERT INTO jew_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
         $db->query($sql);
         echo 1;
     }

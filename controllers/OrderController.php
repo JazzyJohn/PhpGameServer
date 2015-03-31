@@ -163,6 +163,11 @@ class OrderController extends BaseController{
 
                                     break;
                             }
+                            $sql = "SELECT * FROM statistic WHERE uid = '".$receiver_id."'";
+                            $sqldata =$db->fletch_assoc($db->query($sql));
+                            $sqldata = $sqldata[0];
+                            $reward = new MoneyReward($sqldata);
+                            $reward->userBuy();
 
                         }
                     }else{

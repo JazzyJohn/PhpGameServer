@@ -10,7 +10,7 @@ require_once(dirname(dirname(__FILE__))."/classes/vkAuth.php");
 session_start();
 $_SESSION["uid"] = $_REQUEST["viewer_id"];
 
-$version = "0.11.8.unity3d";
+$version = "0.11.12.unity3d";
 session_write_close();
 ?>
 -->
@@ -326,13 +326,13 @@ session_write_close();
             VK.api('groups.isMember', {gid:"78720115"},function(data){
                 if(data["response"]==1){
                     socialSteps.group =1;
-                    $("#group").addClass("done_3");
+                    $("#group").addClass("done_4");
                 }
 
                 VK.api("getUserSettings",{},function(data){
                    if(data["response"] & 256){
                        socialSteps.bookmarks =1;
-                       $("#bookmarks").addClass("done_2");
+                       $("#bookmarks").addClass("done_3");
                    }
                     VK.api("friends.getAppUsers",{},function(data){
                         console.log(data);
@@ -344,7 +344,7 @@ session_write_close();
                             if(data == 1){
                                 socialSteps.alldone= 1;
 
-                                $("#invite").addClass("done_4");
+                                $("#invite").addClass("done_2");
                                 $("#prize").addClass("done_5");
                                 u.getUnity().SendMessage("MainPlayer", "ReloadProfile","");
                             }
@@ -371,17 +371,17 @@ session_write_close();
         <div class="top-panel">
             <a href="#" class="top-panel-point top-logo"></a>
 
-            <a href="#"   class="top-panel-point top-install"></a>
-            <a href="#" id="bookmarks" class="top-panel-point top-add"></a>
-            <a href="https://vk.com/redrage3d"  id="group" target="_blank" class="top-panel-point top-group"></a>
-            <a href="#" id="invite" class="top-panel-point top-invate"></a>
+            <a href="#"   class="top-panel-point top-install done"></a>
+            <a href="#" id="invite"class="top-panel-point top-add "></a>
+            <a  href="#"  id="bookmarks" class="top-panel-point top-group"></a>
+            <a href="https://vk.com/redrage3d"  id="group"   target="_blank" class="top-panel-point top-invate"></a>
 
             <div id="prize" class="top-panel-point top-prize"></div>
         </div>
     </div>
 </div>
 
-<div id="unityPlayer" style="height:720px; margin-left:20px;">
+<div id="unityPlayer" style="width:960px;height:720px; margin-left:20px;">
     <div class="missing">
         <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
             <img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />

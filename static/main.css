@@ -1,5 +1,7 @@
     body {
         background-color: #051823; /* ???? ???? ???-???????? */
+        margin: 0 auto 0 auto;
+        position: relative;
     }
 		
 	.container {
@@ -16,7 +18,7 @@
     }
 
     .top-panel {
-        background-image: url("/img/top-panel.png");
+        background-image: url("img/top-panel.png");
         width: 1000px;
         height: 71px;
         position: relative;
