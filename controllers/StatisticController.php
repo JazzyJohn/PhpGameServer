@@ -26,7 +26,7 @@ class StatisticController extends BaseController{
     }
     public function killNpc(){
         $data =$_REQUEST;
-        $sql = "INSERT INTO statistic (`uid`,`name`,`death`) VALUES('".$data["uid"]."','".$data["name"]."',0)
+        $sql = "INSERT INTO statistic (`uid`,`name`,`killAi`) VALUES('".$data["uid"]."','".$data["name"]."',1)
         ON DUPLICATE KEY UPDATE killAi = killAi + 1   ;";
         $db = DBHolder::GetDB();
         $db->query($sql);
@@ -89,31 +89,43 @@ class StatisticController extends BaseController{
 
         $db = DBHolder::GetDB();
         $db->query($sql);
-
+        $new=false;
         if(count($sqldata)==0){
              $sql = ' INSERT INTO `notify`  (`uid`) VALUES ("'.$uid.'")';
             $db->query($sql);
             $reward =new DaylyReward(false,$uid);
-
+            ShopEvents::new_user();
+            $new=true;
         }else{
-            $reward =new DaylyReward($sqldata[0],$sqldata[0]["UID"]);
-
+            $reward =new DaylyReward($sqldata[0],$uid);
+            $new=false;
         }
         $notifys = $reward->resolved();
 		///file_put_contents("log.txt",mb_detect_encoding($data["name"]));
 
-        self::returnAllStats($notifys);
+        self::returnAllStats($notifys,$new);
     }
-    public static function returnAllStats($notifys = array()){
+    public static function returnSmallData(&$xml,$uid){
+        $sql = "SELECT * FROM statistic LEFT JOIN player_skill ON statistic.UID = player_skill.uid WHERE statistic.UID = '".$uid."'";
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $sqldata = $sqldata[0];
+        $xml->addChild('skillpoint',$sqldata['skillpoint']==""?0:$sqldata['skillpoint']);
+        $xml->addChild('gold',$sqldata['gold']);
+        $xml->addChild('cash',$sqldata['cash']);
+
+    }
+
+    public static function returnAllStats($notifys = array(),$new=false){
         $data =$_REQUEST;
-        $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
+        $sql = "SELECT * FROM statistic LEFT JOIN player_skill ON statistic.UID = player_skill.uid WHERE statistic.UID = '".$data['uid']."'";
         $db = DBHolder::GetDB();
         $sqldata =$db->fletch_assoc($db->query($sql));
         $sqldata = $sqldata[0];
        // print_r($sqldata);
         header('Content-type: text/xml');
         $xmlprofile = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
-                            <player><statistic></statistic></player>');
+                            <player><statistic></statistic><lottery></lottery></player>');
         $xmlprofile->addChild('uid',$sqldata['UID']);
         $xmlprofile->addChild('name',$sqldata['NAME']);
         $xmlprofile->addChild('kill',$sqldata['killCnt']);
@@ -121,13 +133,25 @@ class StatisticController extends BaseController{
         $xmlprofile->addChild('death',$sqldata['death']);
         $xmlprofile->addChild('assist',$sqldata['assist']);
         $xmlprofile->addChild('robotkill',$sqldata['robotkill']);
+        $xmlprofile->addChild('skillpoint',$sqldata['skillpoint']==""?0:$sqldata['skillpoint']);
         $xmlprofile->addChild('robotdestroy',$sqldata['robotdestroy']);
         $xmlprofile->addChild('gold',$sqldata['gold']);
         $xmlprofile->addChild('cash',$sqldata['cash']);
         $xmlprofile->addChild('stamina',$sqldata['stamina']);
         $xmlprofile->addChild('premium',$sqldata['premium']==1?"true":"false");
         $xmlprofile->addChild('premiumEnd',date("c",$sqldata['premiumEnd']));
-
+        if($new){
+            $xmlprofile->addChild('new',$new?"true":"false");
+        }
+        if( MoneyReward::isDoneSocialReward($data['uid'])){
+            $xmlprofile->addChild('socialDone',"true");
+        }else{
+            $xmlprofile->addChild('socialDone',"false");
+        }
+        $data  =Lottery::getLottery($sqldata['UID']);
+        foreach($data as$key=>$element){
+            $xmlprofile->lottery->addChild($key,$element);
+        }
         if($sqldata["statisticData"]!=""){
             $statisticData = json_decode($sqldata["statisticData"],true);
             $domitems = dom_import_simplexml($xmlprofile->statistic);
@@ -171,14 +195,19 @@ class StatisticController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+        $ShopEvents =    new ShopEvents();
+        $notifys= array_merge($notifys, $ShopEvents->notify);
 
+        $xmlprofile->addChild('update',$ShopEvents->shoudUpdate+rand(1,50));
         foreach($notifys as $element){
             $notOne   = new SimpleXMLElement('<notify></notify>');
             $notOne->addChild("type",$element["type"]);
             foreach($element["params"] as $param){
                 $notOne->addChild("param",$param);
             }
-
+            foreach($element["ass_params"] as $key=> $param){
+                $notOne->addChild( $key,$param);
+            }
             $domone  = dom_import_simplexml($notOne);
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
@@ -268,15 +297,19 @@ class StatisticController extends BaseController{
                 $notOne->addChild("prizeplaces",$element["prizeplaces"]);
                 $tar = explode(",",$element["cashReward"]);
                 foreach($tar as $reward){
-                    $notOne->addChild("cashReward",$reward);
+                    $notOne->addChild("cashReward",$reward==""?0:$reward);
                 }
                 $tar = explode(",",$element["goldReward"]);
                 foreach($tar as $reward){
-                    $notOne->addChild("goldReward",$reward);
+                    $notOne->addChild("goldReward",$reward==""?0:$reward);
+                }
+                $tar = explode(",",$element["expReward"]);
+                foreach($tar as $reward){
+                    $notOne->addChild("expReward",$reward==""?0:$reward);
                 }
 
                 $domone  = dom_import_simplexml($notOne);
-                $sql = "SELECT * FROM operation_players WHERE oid = ".$element["id"]." ORDER BY counter  DESC LIMIT 0,10 ";
+                $sql = "SELECT * FROM operation_players WHERE oid = ".$element["id"]." ORDER BY counter  DESC LIMIT 0,40 ";
 
                 $sortedwinners =$db->fletch_assoc($db->query($sql));
                 $sql = "SELECT COUNT(oid) FROM operation_players WHERE  oid = ".$element["id"]." AND counter > ".$mycounter;
@@ -308,7 +341,7 @@ class StatisticController extends BaseController{
             $sql = "SELECT * FROM `premium_skill`";
             $skills =$db->fletch_assoc($db->query($sql));
 
-            $sql = "SELECT * FROM `premium_players` WHERE uid = `".$data['uid']."`";
+            $sql = "SELECT * FROM `premium_players` WHERE uid = '".$data['uid']."'";
             $data =$db->fletch_assoc($db->query($sql));
             if(isset($data[0]["data"])){
                 $data = json_decode($data[0]['data'],true);
@@ -321,10 +354,15 @@ class StatisticController extends BaseController{
                 $notOne->addChild("id",$element["id"]);
                 $notOne->addChild("type",$element["type"]);
                 $notOne->addChild("gameData",$element["gameData"]);
-                $notOne->addChild("maxAmount",$element["maxAmount"]==1);
+                $notOne->addChild("name",$element["name"]);
+                $notOne->addChild("descr",$element["description"]);
+                $notOne->addChild("icon",$element["icon"]);
+                $notOne->addChild("maxAmount",$element["maxAmount"]==1?'true':"false");
                 $tar = explode(",",$element["eventTriggers"]);
                 foreach($tar as $event){
-                    $notOne->addChild("eventTriggers",$event);
+                    if($event!=""){
+                        $notOne->addChild("eventTriggers",$event);
+                    }
                 }
                 $tar = explode(",",$element["price"]);
                 foreach($tar as $event){
@@ -348,45 +386,6 @@ class StatisticController extends BaseController{
     }
 
 
-    public function notifyUsers(){
-        $data =$_REQUEST;
-		if(!isset($data["message"])){
-		 include "static/form.php";
-		 return;
-		}
-
-        $sql = "SELECT uid FROM notify";
-        $db = DBHolder::GetDB();
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        $token = self::getVKAUTH();
-        Logger::instance()->write($token );
-        $VK = new vkapi(self::$api_id, self::$secret_key);
-        $i=0;
-        while($i<count($sqldata)){
-            $uids =array();
-
-            for(;$i<count($sqldata);$i++){
-                if($sqldata[$i]['uid']>0){
-                    $uids[] = $sqldata[$i]['uid'];
-                    if(count($uids)>=99){
-                        break;
-                    }
-                }
-            }
-
-
-            $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>$data["message"],"client_secret"=>$token));
-
-            Logger::instance()->write(print_r($resp,true) );
-            print_r($resp);
-        }
-
-
-
-
-
-    }
-
     public function globalerrorlog(){
 
     }
@@ -402,7 +401,7 @@ class StatisticController extends BaseController{
         $sql = "SELECT * FROM `premium_skill` WHERE id = '".$input["itemid"]."'";
         $skills =$db->fletch_assoc($db->query($sql));
 
-        $sql = "SELECT * FROM `premium_players` WHERE uid = `".$input['uid']."`";
+        $sql = "SELECT * FROM `premium_players` WHERE uid = '".$input['uid']."'";
         $data =$db->fletch_assoc($db->query($sql));
         if(isset($data[0]["data"])){
             $data = json_decode($data[0]['data'],true);
@@ -422,6 +421,7 @@ class StatisticController extends BaseController{
             echo $xmlresult->asXML();
             return;
         }
+        $xmlresult->addChild("error",0);
         $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
         $db->query($sql);
         $addTime = 0;
@@ -444,7 +444,7 @@ class StatisticController extends BaseController{
         }
         $data[$skill["id"]]=$newTime;
         $data = json_encode($data);
-        $sql = "INSERT INTO premium_players (`uid`,`data`) VALUES ('".$data["uid"]."','".$data."')  ON DUPLICATE KEY UPDATE data ='".$data."' ;";
+        $sql = "INSERT INTO premium_players (`uid`,`data`) VALUES ('".$input["uid"]."','".$data."')  ON DUPLICATE KEY UPDATE data ='".$data."' ;";
         $db->query($sql);
         $domitems = dom_import_simplexml($xmlresult);
         foreach($skills as $element){
@@ -456,6 +456,7 @@ class StatisticController extends BaseController{
             $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
             $domitems->appendChild($domone);
         }
+        echo $xmlresult->asXML();
     }
 
     public function socialPrize(){
@@ -517,5 +518,23 @@ class StatisticController extends BaseController{
         $sql =  "INSERT INTO jew_events (`uid`,`steps`) VALUES ('".$input["uid"]."','".json_encode($answer)."')  ON DUPLICATE KEY UPDATE `steps` ='".json_encode($answer)."'  ";
         $db->query($sql);
         echo 1;
+    }
+    public function socialReward(){
+        header('Content-type: text/xml');
+        $input = $_REQUEST;
+        $db = DBHolder::GetDB();
+        if(!MoneyReward::isDoneSocialReward($input['uid'])){
+            MoneyReward::setSocialRewardDone($input['uid']);
+            $sql ="SELECT * FROM `game_items_kit` WHERE id=".SOCIAL_KIT;
+            $sqldata =$db->fletch_assoc($db->query($sql));
+
+
+            $kit = $sqldata[0];
+            OrderController::resolveKit($kit,$input['uid'],0);
+        }
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result><error>0</error>
+							</result>');
+        echo $xmlresult->asXML();
     }
 }

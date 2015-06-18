@@ -27,6 +27,7 @@ class MoneyReward{
 
     }
 
+
     public function userBuy(){
         $sql = "SELECT * FROM jew_events WHERE uid = '". $this->user["UID"]."'";
         $db = DBHolder::GetDB();
@@ -74,4 +75,30 @@ class MoneyReward{
             }
         }
     }
+
+    public static function isDoneSocialReward($uid){
+        if( isset( $_SESSION["lastRewardDate"])){
+            $lastRewardDate= $_SESSION["lastRewardDate"];
+        }else{
+            $sql = "SELECT * FROM jew_events WHERE uid = '".$uid."'";
+            $db = DBHolder::GetDB();
+            $data =$db->fletch_assoc($db->query($sql));
+            $_SESSION["lastRewardDate"] = $data[0]["lastdate"];
+            $lastRewardDate = $data[0]["lastdate"];
+        }
+        if(date("d.m.Y")!=date("d.m.Y",$lastRewardDate)){
+            return false;
+
+        }else{
+            return true;
+        }
+    }
+    public static function setSocialRewardDone($uid)
+    {
+        $db = DBHolder::GetDB();
+        $sql =  "INSERT INTO jew_events (`uid`,`lastdate`) VALUES ('".$uid."','".time()."')  ON DUPLICATE KEY UPDATE `lastdate` ='".time()."'  ";
+        $db->query($sql);
+        $_SESSION["lastRewardDate"]= time();
+    }
+
 }

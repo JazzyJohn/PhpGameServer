@@ -8,6 +8,8 @@
 
 class AuthController extends BaseController{
     public function before(){
+
+        Logger::instance()->write("SESSION" .print_r($_SESSION,true));
         $headers =  getallheaders ();
 
         if(!isset($headers["X-Digest"])){

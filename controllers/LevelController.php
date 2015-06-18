@@ -121,6 +121,10 @@ class LevelController extends AuthController{
                 $skilOne->addChild("buff",$skill["buff"]);
                 $skilOne->addChild("lvl",$skill["lvl"]);
                 $skilOne->addChild("name",$skill["name"]);
+                $skilOne->addChild("cash",$skill["cash"]);
+                $skilOne->addChild("gold",$skill["gold"]);
+                $skilOne->addChild("exp",$skill["skillpoint"]);
+                $skilOne->addChild("descr",$skill["description"]);
                 $skilOne->addChild("guiimage",$skill["guiimage"]);
                 if(in_array($skill["id"],$openSkill)){
                     $skilOne->addChild("open","true");
@@ -142,6 +146,7 @@ class LevelController extends AuthController{
 	
 	}
 	public function savelvl(){
+            header('Content-type: text/xml');
 			$data =$_REQUEST;
 			$sql = "SELECT * FROM `level_player` WHERE uid = '".$data["uid"]."' ORDER BY  class ASC";
 				$db = DBHolder::GetDB();
@@ -190,17 +195,63 @@ class LevelController extends AuthController{
 
             }else{
                 $xml =new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
-                            <result>
-							</result>');
+                            <result></result>');
                 echo $xml->asXML();
             }
 				
 	}
 
-    public function spendSkillPoint(){
+    public function spendskillpoint(){
+        header('Content-type: text/xml');
         $data =$_REQUEST;
         $db = DBHolder::GetDB();
+        $xmlresult= new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+						<result>
+						</result>');
+        $sql = "SELECT * FROM  `player_skill`  WHERE uid =\"".$data["uid"]."\"";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $playerskill = $sqldata[0];
+        $openSkill = array();
+        if(isset($sqldata[0]["skills"])){
 
+            $openSkill = explode(",",$sqldata[0]["skills"]);
+        }
+        if(in_array($data["id"],$openSkill)){
+            $xmlresult->addChild("error",5);
+            $xmlresult->addChild("errortext","Ошибка,обратитесь к администратору");
+            echo $xmlresult->asXML();
+            return;
+        }
+
+        $sql = "SELECT * FROM  `skills`  WHERE id =\"".$data["id"]."\"";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $skill = $sqldata[0];
+
+        $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+ // echo $user["cash"]." ".$skill["cash"]." ".$user["gold"]." ".$skill["gold"]." ".$playerskill." ".$skill["skillpoint"];
+        if($user["cash"]<$skill["cash"]||$user["gold"]<$skill["gold"]||$playerskill["skillpoint"]<$skill["skillpoint"]){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег");
+            echo $xmlresult->asXML();
+            return;
+        }
+
+        $sql = "UPDATE statistic SET cash = cash -".$skill["cash"].",gold = gold -".$skill["gold"]." WHERE uid ='".$data['uid']."'";
+        $db->query($sql);
+
+        $sql = "UPDATE `player_skill` SET `skills`=\n"
+            . "\n"
+            . "CASE \n"
+            . " WHEN (`skills`=\"\" ) THEN \"".$data["id"]."\"\n"
+            . " ELSE  CONCAT(`skills`,\",".$data["id"]."\")\n"
+            . "END\n"            . ",\n"
+            . "`skillpoint` =  `skillpoint`- ".$skill["skillpoint"]."\n"
+
+            . " WHERE uid =\"".$data["uid"]."\"";
+          $db->query($sql);
+        /*
         $sql = "UPDATE `player_skill` SET `skills`=\n"
             . "\n"
             . "CASE \n"
@@ -215,23 +266,64 @@ class LevelController extends AuthController{
             . " WHEN `skillpoint`>=1 THEN `skillpoint`-1\n"
             . " ELSE `skillpoint`\n"
             . "END\n"
-            . " WHERE uid =\"".$data["uid"]."\"";
+            . " WHERE uid =\"".$data["uid"]."\"";*/
+
+
+
+        $xmlresult->addChild("error",0);
+            $xmlresult->addChild("open","true");
+
+
+
+            echo $xmlresult->asXml();
+    }
+    public function resetSkills(){
+        header('Content-type: text/xml');
+        $xmlresult= new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+						<result>
+						</result>');
+        $data =$_REQUEST;
+        $db = DBHolder::GetDB();
+        $sql = "SELECT * FROM `player_skill` WHERE uid='".$data["uid"]."' ";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $playerskill = $sqldata[0];
+
+        $sql = "SELECT * FROM statistic WHERE uid = '".$data['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+        // echo $user["cash"]." ".$skill["cash"]." ".$user["gold"]." ".$skill["gold"]." ".$playerskill." ".$skill["skillpoint"];
+        if($user["gold"]<RESET_SKILL_PRICE){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег");
+            echo $xmlresult->asXML();
+            return;
+        }
+
+        $sql = "SELECT * FROM  `skills`  WHERE id IN (\"".$playerskill["skills"]."\")";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $exp = 0; $gold=0; $cash = 0;
+        foreach($sqldata  as $skill){
+            $exp += $skill["skillpoint"];
+            $gold += $skill["gold"];
+            $cash += $skill["cash"];
+        }
+        $gold-=RESET_SKILL_PRICE;
+
+
+        $sql = "UPDATE statistic SET cash = cash +".$cash.",gold = gold +".$gold." WHERE uid ='".$data['uid']."'";
         $db->query($sql);
 
-        $sql = "SELECT * FROM  `player_skill`  WHERE uid =\"".$data["uid"]."\"";
-        $sqldata =$db->fletch_assoc($db->query($sql));
-        $xmlresult= new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
-						<spendskill>
-						</spendskill>');
-        $allSkill =explode(",",$sqldata[0]["skill"]);
-        if(in_array($data["id"],$allSkill)){
-            $xmlresult->addChild("open","true");
-            $xmlresult->addChild("skillpoint",$sqldata[0]["skillpoint"]);
-        }else{
-            $xmlresult->addChild("open","false");
-        }
-        header('Content-type: text/xml');
+        $sql = "UPDATE `player_skill` SET `skills`='',"
+
+            . "`skillpoint` =  `skillpoint`+ ".$exp."\n"
+
+            . " WHERE uid =\"".$data["uid"]."\"";
+        $db->query($sql);
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("open","true");
+
+
+
         echo $xmlresult->asXml();
     }
-
 }

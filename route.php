@@ -18,7 +18,7 @@ Router::addRoute("/globalerrorlog","StatisticController");
 
 Router::addRoute("/returnAllStats","StatisticController");
 
-Router::addRoute("/notifyUsers","StatisticController");
+Router::addRoute("/notifyUsers","AdminController");
 
 Router::addRoute("/loadachive","AchivementController");
  
@@ -94,6 +94,8 @@ Router::addRoute("/saveoperation","TournamentController");
 
 Router::addRoute("/operations","AdminController");
 
+Router::addRoute("/twitterTest","AdminController");
+
 Router::addRoute("/buyPremiumSkill","StatisticController");
 
 Router::addRoute("/finishTask","AchivementController");
@@ -105,3 +107,18 @@ Router::addRoute("/statisticdata","StatisticController");
 Router::addRoute("/buynextset","OrderController");
 
 Router::addRoute("/socialPrize","StatisticController");
+
+Router::addRoute("/spendskillpoint","LevelController");
+
+Router::addRoute("/badInventor","AdminController");
+
+Router::addRoute("/resetSkills","LevelController");
+
+Router::addRoute("/buyKit","OrderController");
+
+Router::addRoute("/buyLotteryPlay","LotteryController");
+
+Router::addRoute("/loteryResult","LotteryController");
+
+Router::addRoute("/socialReward","StatisticController");
+

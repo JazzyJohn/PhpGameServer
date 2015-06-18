@@ -20,7 +20,7 @@ class BaseController{
     }
 
     public function before(){
-        session_start();
+
         Logger::instance()->write("SESSION" .print_r($_SESSION,true));
         if(isset($_SESSION["uid"])){
             Logger::instance()->write("SESSION uid ".$_SESSION["uid"]);
@@ -29,7 +29,7 @@ class BaseController{
 
             if(isset($_REQUEST["uid"])&&is_numeric($_REQUEST["uid"])){
                 Logger::instance()->write("FROM VK WITHOUT SESSION");
-                die("FROM VK WITHOUT SESSION");
+             //   die("FROM VK WITHOUT SESSION");
             }
         }
         return true;

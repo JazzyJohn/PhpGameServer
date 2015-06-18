@@ -62,8 +62,8 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
                 $achOne->addChild("nextname",$element["nextname"]);
                 $achOne->addChild("nextdescription",$element["nextdescription"]);
                 $reward = explode("/",$element["nextreward"]);
-                $achOne->addChild("nextgoldreward",$reward[0]==""?0:$reward[0]);
-                $achOne->addChild("nextcashreward",$reward[1]==""?0:$reward[1]);
+                $achOne->addChild("nextgoldreward",$reward[1]==""?0:$reward[1]);
+                $achOne->addChild("nextcashreward",$reward[0]==""?0:$reward[0]);
                 $achOne->addChild("nextskillreward",$reward[2]==""?0:$reward[2]);
                 switch($element["order"]){
                     case "1":
@@ -79,8 +79,8 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
 
             }
             $reward = explode("/",$element["reward"]);
-            $achOne->addChild("goldreward",$reward[0]==""?0:$reward[0]);
-            $achOne->addChild("cashreward",$reward[1]==""?0:$reward[1]);
+            $achOne->addChild("goldreward",$reward[1]==""?0:$reward[1]);
+            $achOne->addChild("cashreward",$reward[0]==""?0:$reward[0]);
             $achOne->addChild("skillreward",$reward[2]==""?0:$reward[2]);
 
             $achOne->addChild("icon",$element["icon"]);
@@ -155,16 +155,18 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         $addcash = 0;
         $addgold = 0;
         $addskill = 0;
+        $posttwit= false;
+        $achivmentName="";
         foreach($sqldata as $element){
             $reward = explode("/",$element["reward"]);
-            if(isset($reward[0])){
-                $addgold+= $reward[0];
-            }
             if(isset($reward[1])){
-                $addcash+= $reward[1];
+                $addgold+= $reward[1];
+            }
+            if(isset($reward[0])){
+                $addcash+= $reward[0];
             }
             if(isset($reward[2])){
-                $addcash+= $reward[2];
+                $addskill+= $reward[2];
             }
             switch($element["type"]){
 
@@ -174,6 +176,10 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
 
                     break;
 
+            }
+            if($element['postpriority']>0){
+                $posttwit = true;
+                $achivmentName = $element["name"];
             }
         }
         $progress = array();
@@ -220,6 +226,12 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
                             <result>
 							</result>');
+
+        if($addcash>0||$addgold>0||$addskill>0){
+            StatisticController::returnSmallData($xmlresult,$data["uid"]);
+        }
+
+
         if($dayly[0]["count"]==DAYLIC_COUNT){
             $xmlresult->addChild("daylyfinish", "true");
             $sql = "UPDATE statistic SET gold = gold + ".GOLD_FOR_DAYLIC." WHERE uid ='".$data["uid"]."'";
@@ -230,7 +242,12 @@ LEFT JOIN `achievement_list` AS nextList ON aclist.id = nextList.previous
         }
         $xmlresult->addChild("error", 0);
         echo $xmlresult->asXml();
+        if($posttwit){
+            $sql = ' SELECT * FROM `statistic` WHERE uid ="'.$data["uid"].'"';
 
+            $sqldata =$db->fletch_assoc($db->query($sql));
+            TwitterApi::postAchivment($sqldata[0]["NAME"],$achivmentName);
+        }
     }
 
     public function daylyTask(){

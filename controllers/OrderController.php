@@ -12,6 +12,8 @@ class OrderController extends BaseController{
         foreach ($input as $k => $v) {
             $str .= $k.'='.$v;
         }
+        $logger =Logger::instance();
+        $logger->importnat_write(print_r($input,true));
         $response = array();
         if ($sig != md5($str.self::$secret_key)) {
             $response['error'] = array(
@@ -181,7 +183,7 @@ class OrderController extends BaseController{
                     break;
             }
         }
-
+        $logger->importnat_write(print_r($response,true));
         echo json_encode($response);
 
     }
@@ -407,6 +409,8 @@ class OrderController extends BaseController{
                     break;
             }
         }
+        $events = new ShopEvents();
+        $discount = $events->getDiscount($item_prices[0]["inv_id"]);
 
         if(count($item_prices)==1){
 
@@ -414,7 +418,7 @@ class OrderController extends BaseController{
             $item  = $item_prices[0];
             //TODO: DO LOCK;
             $inv_id = $item["inv_id"];
-            $price=$item["amount"];
+            $price=$item["amount"]*$discount;
           //  print_r($item);
             switch($item["type"]){
                 case "KP_PRICE":
@@ -424,7 +428,7 @@ class OrderController extends BaseController{
                         echo $xmlresult->asXML();
                         return;
                     }
-                    $sql = "UPDATE statistic SET cash = cash -".$price." WHERE uid ='".$input['uid']."'";
+                    $sql = "UPDATE statistic SET cash = cash -".(int)$price." WHERE uid ='".$input['uid']."'";
                     $db->query($sql);
                     break;
                   default:
@@ -435,7 +439,7 @@ class OrderController extends BaseController{
                         echo $xmlresult->asXML();
                         return;
                     }
-                    $sql = "UPDATE statistic SET gold = gold -".$price." WHERE uid ='".$input['uid']."'";
+                    $sql = "UPDATE statistic SET gold = gold -".(int)$price." WHERE uid ='".$input['uid']."'";
                     $db->query($sql);
                     break;
 
@@ -444,7 +448,7 @@ class OrderController extends BaseController{
         }else{
             $sqls =array();
             foreach( $item_prices as  $item){
-                $price=$item["amount"];
+                $price=$item["amount"]*$discount;
                 switch($item["type"]){
                     case "KP_PRICE":
                         if($user["cash"]<  $price){
@@ -453,7 +457,7 @@ class OrderController extends BaseController{
                             echo $xmlresult->asXML();
                             return;
                         }
-                        $sqls[] = " cash = cash -".$price."";
+                        $sqls[] = " cash = cash -".(int)$price."";
                          break;
 
                     default:
@@ -464,7 +468,7 @@ class OrderController extends BaseController{
                             echo $xmlresult->asXML();
                             return;
                         }
-                        $sqls[] = " gold = gold -".$price."";
+                        $sqls[] = " gold = gold -".(int)$price."";
                         break;
                 }
             }
@@ -528,6 +532,98 @@ class OrderController extends BaseController{
         //print_r($data);
 
         return;
+    }
+    public function buyKit(){
+        $input = $_REQUEST;
+        $xmlresult = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?>
+                            <result>
+							</result>');
+        $db = DBHolder::GetDB();
+        $sql ="SELECT * FROM `game_items_kit` WHERE id=".$input["kit_id"];
+        $sqldata =$db->fletch_assoc($db->query($sql));
+
+        if(!isset($sqldata[0])){
+            $xmlresult->addChild("error",1);
+            $xmlresult->addChild("errortext","Извините лот не найден");
+            echo $xmlresult->asXML();
+            return;
+        }
+
+        $kit = $sqldata[0];
+        $events = new ShopEvents();
+        $price = (int)$kit["goldPrice"]*$events->getKitDiscount($input["kit_id"],$end);
+
+        $sql = "SELECT * FROM statistic WHERE uid = '".$input['uid']."'";
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $user =$sqldata[0];
+
+
+        if($user["gold"]< $price ){
+            $xmlresult->addChild("error",2);
+            $xmlresult->addChild("errortext","Недостаточно денег ");
+            echo $xmlresult->asXML();
+            return;
+        }
+        self::resolveKit($kit,$input["uid"],$price);
+        $xmlresult->addChild("error",0);
+        $xmlresult->addChild("errortext","");
+        echo $xmlresult->asXML();
+
+    }
+    public static  function resolveKit($kit,$uid,$price){
+     //   print_r($kit);
+        $db = DBHolder::GetDB();
+        $money = explode(",",$kit['money']);
+
+        $price-= $money[1];
+
+        $sql = "UPDATE statistic SET gold = gold -".(int) $price.", cash = cash +".(int)$money[0]." WHERE uid ='".$uid."'";
+        $db->query($sql);
+
+
+        $data =json_decode($kit["items"],true);
+        foreach($data as $item){
+
+            if($item["days"]==-1){
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`) VALUES('".$uid."','".$item["id"]."','FOR_KP_UNBREAK')";
+            }else{
+                $day_count =$item["days"];
+                $sql ="INSERT INTO game_items_players (`uid`,`item_id`,`buytype`,`time_end`) VALUES('".$uid."','".$item["id"]."','FOR_GOLD_TIME','".($day_count*86400+time())."')
+                  ON DUPLICATE KEY UPDATE `buytype` = 'FOR_GOLD_TIME', time_end	 = CASE \n"
+                    . " WHEN (`time_end`> ".time().") THEN  time_end	 +'".($day_count*86400)."'\n"
+                    . " ELSE   '".(time() + $day_count*86400)."\N'
+                     END
+                ";
+
+            }
+            $db->query($sql);
+        }
+        $sql = "SELECT * FROM `premium_players` WHERE uid = '".$uid."'";
+        $data =$db->fletch_assoc($db->query($sql));
+        if(isset($data[0]["data"])){
+            $data = json_decode($data[0]['data'],true);
+        }else{
+            $data= array();
+        }
+
+        $skills =json_decode($kit["skills"],true);
+        if(count($skills)>0){
+            foreach($skills as $skill){
+                $addTime =$skill["days"];
+                if(isset($data[$skill["id"]])&&$data[$skill["id"]]>time()){
+
+                    $newTime = $data[$skill["id"]]+$addTime*86400;
+                }else{
+                    $newTime = time()+$addTime*86400;
+                }
+
+                $data[$skill["id"]]=$newTime;
+
+            }
+            $data = json_encode($data);
+            $sql = "INSERT INTO premium_players (`uid`,`data`) VALUES ('".$uid."','".$data."')  ON DUPLICATE KEY UPDATE data ='".$data."' ;";
+            $db->query($sql);
+        }
     }
     public function disentegrateItem(){
         $input = $_REQUEST;

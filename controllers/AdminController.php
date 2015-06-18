@@ -29,6 +29,49 @@ class AdminController extends BaseController{
         return true;
     }
 
+    public function notifyUsers(){
+        $data =$_REQUEST;
+        if(!isset($data["message"])){
+            include "static/form.php";
+            return;
+        }
+
+        $sql = "SELECT uid FROM notify WHERE version<".$data['version']. " LIMIT 0,".$data["number"];
+        $db = DBHolder::GetDB();
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        $token = self::getVKAUTH();
+        Logger::instance()->write($token );
+        $VK = new vkapi(self::$api_id, self::$secret_key);
+        $i=0;
+
+        while($i<count($sqldata)){
+            $uids =array();
+            $sqlid= array();
+            for(;$i<count($sqldata);$i++){
+                if($sqldata[$i]['uid']>0){
+                    $uids[] = $sqldata[$i]['uid'];
+                    $sqlid[]="'". $sqldata[$i]['uid']."'";
+                    if(count($uids)>=99){
+                        break;
+                    }
+                }
+            }
+
+
+            $resp = $VK->api('secure.sendNotification', array('user_ids'=>implode(",",$uids),'message'=>$data["message"],"client_secret"=>$token));
+            $sql = "UPDATE notify SET version = ".$data['version']." WHERE uid IN (".implode(",",$sqlid).")";
+            $db = DBHolder::GetDB();
+            $db->query($sql);
+            Logger::instance()->write(print_r($resp,true) );
+            print_r($resp);
+        }
+
+
+
+
+
+    }
+
     public function listofnews(){
 
 
@@ -145,6 +188,9 @@ class AdminController extends BaseController{
         }
         print_r($data);
     }
+    public function twitterTest(){
+        TwitterApi::postLevel("test",10);
+    }
     public function  operations(){
         $db = DBHolder::GetDB();
         switch($_REQUEST["action"]){
@@ -182,17 +228,21 @@ class AdminController extends BaseController{
                     $sql = "SELECT * FROM operation_players WHERE oid = '".$operation["id"]."' ORDER BY counter  DESC ";
                     $winners =$db->fletch_assoc($db->query($sql));
                     $cashReward = explode(",",$operation["cashReward"]);
-
+                    $skillReward = explode(",",$operation["expReward"]);
                     $goldReward = explode(",",$operation["goldReward"]);
-                    for($i=0;$i<$operation["prizeplaces"];$i++){
-                        echo "Место ".$i. " <a href='http://vk.com/id".$winners[$i]["uid"]."'>".$winners[$i]["uid"]."</a> +".$cashReward[$i]. " кредитов +".$goldReward[$i]." золота <br>";
+                    for($i=0;$i<=$operation["prizeplaces"];$i++){
+                        echo "Место ".$i. " <a href='http://vk.com/id".$winners[$i]["uid"]."'>".$winners[$i]["uid"]."</a> +".$cashReward[$i]. " кредитов +".$goldReward[$i]." золота + ".$skillReward[$i]." скиллпоинтов<br>";
 
                         $sql = "UPDATE statistic SET cash = cash +".$cashReward[$i].", gold = gold+ ".$goldReward[$i]." WHERE uid ='".$winners[$i]["uid"]."'";
                         echo $sql." <br>";
                         $db->query($sql);
+                        $sql = "INSERT INTO player_skill (`uid`,`skillpoint`) VALUES('".$winners[$i]["uid"]."',".$skillReward[$i].")
+                 ON DUPLICATE KEY UPDATE skillpoint  = skillpoint +".$skillReward[$i]."  ;";
+                        ;
+                        $db->query($sql);
                     }
 
-                    for($i= $operation["prizeplaces"]; $i<count($winners);$i++){
+                  /*  for($i= $operation["prizeplaces"]; $i<count($winners);$i++){
                         echo "Место ".$i. " <a href='http://vk.com/id".$winners[$i]["uid"]."'>".$winners[$i]["uid"]."</a> +".$cashReward[$operation["prizeplaces"]]. " кредитов +".$goldReward[$operation["prizeplaces"]]." золота <br>";
                         $uids[] ="'".$winners[$i]["uid"]."'";
 
@@ -200,7 +250,7 @@ class AdminController extends BaseController{
                     }
                     $sql = "UPDATE statistic SET cash = cash +".$cashReward[$operation["prizeplaces"]].", gold = gold+ ".$goldReward[$operation["prizeplaces"]]." WHERE uid IN (".implode(",",$uids).")";
                     echo $sql;
-                    $db->query($sql);
+                    $db->query($sql);*/
                 }
 
 
@@ -212,4 +262,27 @@ class AdminController extends BaseController{
 
         require_once(__DIR__."/../admin/operation.php");
     }
+    public function badInventor(){
+        $db = DBHolder::GetDB();
+        $sql = "SELECT uid,item_id FROM `game_items_players` ORDER BY uid ASC, item_id ASC";
+        $db->query($sql);
+        $bad= array();
+        $lastUid = -1;
+        $all =$db->fletch_assoc($db->query($sql));
+        foreach($all as $element){
+
+            if($lastUid!=$element["uid"] &&$element["item_id"]!=1){
+                $bad[] = $element["uid"];
+            }
+            $lastUid=$element["uid"];
+        }
+        print_r($bad);
+        foreach($bad as $element){
+            $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$element.'","'.NEWBIE_PISTOL.'","FOR_KP")';
+            $db->query($sql);
+
+        }
+
+    }
+
 }

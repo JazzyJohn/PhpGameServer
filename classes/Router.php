@@ -25,6 +25,11 @@ class Router{
 
     }
     public function run($url){
+       // session_id(md5($_REQUEST["uid"].SESSION_KEY));
+
+        date_default_timezone_set ("Etc/GMT-3");
+        session_start();
+
 		Logger::instance()->write($url);
         $url = explode("?",$url);
         $url = $url[0];
@@ -66,7 +71,7 @@ class Router{
             return;
         }
         echo "404";
-
+        session_write_close();
     }
 
 

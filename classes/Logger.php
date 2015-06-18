@@ -27,8 +27,12 @@ class Logger{
     }
 
     public function write($log){
-        fwrite($this->h,date("H:i:s")." ::: ".$log."\r\n");
+      //  fwrite($this->h,date("H:i:s")." ::: ".$log."\r\n");
 
     }
 
+    public function importnat_write($log){
+        fwrite($this->h,date("H:i:s")." ::: ".$log."\r\n");
+
+    }
 }

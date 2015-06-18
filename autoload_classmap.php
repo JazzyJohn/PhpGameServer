@@ -20,6 +20,7 @@ return array(
     'RegistrationAPI' => dirname(__FILE__) . '/controllers/RegistrationAPI.php',
     'CronController' => dirname(__FILE__) . '/controllers/CronController.php',
     'NewsController' => dirname(__FILE__) . '/controllers/NewsController.php',
+    'LotteryController' => dirname(__FILE__) . '/controllers/LotteryController.php',
     'PremiumController' => dirname(__FILE__) . '/controllers/PremiumController.php',
 		'LevelController' => dirname(__FILE__) . '/controllers/LevelController.php',
 			'ItemController' => dirname(__FILE__) . '/controllers/ItemController.php',
@@ -30,4 +31,8 @@ return array(
     'LevelUp' => dirname(__FILE__) . '/classes/LevelUp.php',
     'DaylyReward' => dirname(__FILE__) . '/classes/DaylyReward.php',
     'MoneyReward' => dirname(__FILE__) . '/classes/MoneyReward.php',
+    'ShopEvents' => dirname(__FILE__) . '/classes/ShopEvents.php',
+    'TwitterApi' => dirname(__FILE__) . '/classes/TwitterApi.php',
+    'Lottery' => dirname(__FILE__) . '/classes/Lottery.php',
+    'Codebird\\Codebird' => dirname(__FILE__) . '/classes/codebird.php',
 );

@@ -8,6 +8,8 @@
  <body>
  	<form method="POST">
 			Message: <input  name="message"><br/>
+            Version: <input  name="version"><br/>
+            Number: <input  name="number"><br/>
 			<input type='submit' name="Отправить"><br/>
 			</form>
 

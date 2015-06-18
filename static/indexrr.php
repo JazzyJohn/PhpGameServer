@@ -7,10 +7,16 @@ require_once(dirname(dirname(__FILE__))."/classes/vkAuth.php");
 //
 //    die ("invaders must die");
 //}
+ini_set('session.gc_maxlifetime', 4*3600);
+
+// each client should remember their session id for EXACTLY 1 hour
+session_set_cookie_params(4*3600);
+//session_id(md5($_REQUEST["viewer_id"].SESSION_KEY));
 session_start();
+
 $_SESSION["uid"] = $_REQUEST["viewer_id"];
 
-$version = "0.11.12.unity3d";
+$version = "0.15.16.unity3d";
 session_write_close();
 ?>
 -->
@@ -37,7 +43,7 @@ session_write_close();
         var uid = <?=isset($_REQUEST["viewer_id"])?$_REQUEST["viewer_id"]:0;?>;
         var sid = '<?=session_id()?>';
         var config = {
-            width: 1000,
+            width: 960,
             height: 720,
             params: { enableDebugging:"0",
                 backgroundcolor: "051823",
@@ -119,6 +125,20 @@ session_write_close();
                     if(data['response']==1){
                         SendReward();
                     }
+                });
+                $("#group").click(function(){
+                    var intervalid = null;
+                    function checkGroup(){
+                        VK.api('groups.isMember', {gid:"78720115"},function(data){
+
+                            if(data['response']==1){
+                                clearInterval(intervalid);
+                                SendReward();
+                            }
+                        });
+                    }
+                    intervalid =setInterval(checkGroup(), 2000)
+
                 });
             });
 
@@ -360,7 +380,31 @@ session_write_close();
              socialSteps.invite =1;
 
         }
+        var social_images =
+            [
+                {image:"-78720115_367001941",
+                    text:"Что мы говорим НАТО? Ай маст брейк ю! http://vk.com/app4596119 #red_rage"},
+                {image:"-78720115_367001937",
+                    text:"Дошли до Берлина - дойдем и до Вашингтона! http://vk.com/app4596119 #red_rage"},
+                {image:"-78720115_367001947",
+                    text:"Да взойдет красное солнце! http://vk.com/app4596119 #red_rage"},
+                {image:"-78720115_367001951",
+                    text:"Дай НАТО достойный отпор! http://vk.com/app4596119 #red_rage"}
 
+
+
+
+
+            ];
+        function SocialMessagePost(mess){
+            var i=getRandomArbitary(0,social_images.length);
+            VK.api("wall.post", {message:social_images[i].text,attachments:"photo"+social_images[i].image+",http://vk.com/app4596119"}, function(data) {
+
+                if (data.response) {
+                    u.getUnity().SendMessage("MainPlayer", "SocialReward_OpenWall","");
+                }
+            });
+        }
 
     </script>
 </head>
@@ -382,17 +426,148 @@ session_write_close();
 </div>
 
 <div id="unityPlayer" style="width:960px;height:720px; margin-left:20px;">
-    <div class="missing">
-        <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!">
-            <img alt="Unity Web Player. Install now!" src="http://webplayer.unity3d.com/installation/getunity.png" width="193" height="63" />
-        </a>
+    
+<div class="unityError">
+
+
+    <h2 style="width: 100%; text-align: center; margin-top: 40px;">ВНИМАНИЕ! ПЛАГИН UNITY НЕ УСТАНОВЛЕН</h2>
+
+        <div style="width: 100%; text-align: center; font-size: 14px;">Для установки плагина, нажмите на кнопку ниже<br><br>
+
+            <a href="http://unity3d.com/webplayer/" title="Unity Web Player. Install now!" target="_blank" style="font-size: 11px; font-family: tahoma;">
+                <div class="browser-img" style="width: 193px; height: 63px; background: url(http://webplayer.unity3d.com/installation/getunity.png) no-repeat;"></div>
+            </a>
+
+        </div>
+
+    <h2>Солдат!<br>Ты используешь Google Chrome</h2>
+
+    <div class="text_block">
+
+        <h3>Что бы его починить:</h3>
+
+    <p style="line-height: 2;">
+    1. Перейди по адрессу: <strong>chrome://flags/#enable-npapi</strong><br>
+    2. Нажми "Включить NPAPI" (обычно выделено желтым цветом)<br>
+    3. Внизу появится кнопка "Перезапустить" - нажми на нее и все заработает
+    </p>
     </div>
+
+
+    <h2 style="width: 100%; text-align: center; margin-top: 20px;">Или просто используй другой браузер</h2>
+
+
+    <div class="browsers">
+        <div class="browser-box">
+            <a href="https://browser.yandex.com" target="_blank" style="font-size: 11px; font-family: tahoma;">
+                <div class="browser-img" style="width: 77px; background: url(img/yandex.png) no-repeat;"></div>
+                <div class="browser-link"><u>Yandex.Браузер</u><br></div>
+            </a>
+            <span style="text-decoration: none;">(рекомендуется)</span>
+        </div>
+
+        <div class="browser-box">
+            <a href="https://www.mozilla.org/ru/firefox/desktop/" target="_blank" style="font-size: 11px; font-family: tahoma;">
+                <div class="browser-img" style="width: 78px; background: url(img/firefox.png) no-repeat;"></div>
+                <div class="browser-link"><u>Mozilla Firefox</u><br></div>
+            </a>
+            <br>
+        </div>
+
+        <div class="browser-box">
+            <a href="http://www.opera.com/ru/computer/windows" target="_blank" style="font-size: 11px; font-family: tahoma;">
+                <div class="browser-img" style="width: 72px; background: url(img/opera.png) no-repeat;"></div>
+                <div class="browser-link"><u>Opera</u><br></div>
+            </a>
+            <br>
+        </div>
+
+    </div>
+
+
+</div>
+
 
 
 </div>
 <div id="resumebtn" style="height:720px; position: absolute; top:150px;visibility: hidden;">
     <img src="/static/nazhimai.png"  width="960px"  height="720px"  />
 </div>
-<a style="border: 0; margin: 0; padding: 0;" href="//vk.com/topic-78720115_30966102" target="_blank"><img alt="Сообщить об ошибке" src="img/botton_menu.jpg" width="1000px" height="100px"/></a>
+
+<video width="1000" height="100" autoplay="autoplay" loop="true">
+    <source src="video/promo_0.1.mp4" type="video/mp4">
+</video>
+
+
+
+    <!--Twitter widget start-->
+
+    <div class="twitter-container">
+
+        <style type="text/css" id="twitterStyle">
+
+            #twitterStyled .stream {
+                background-color: #1b1b1b;
+
+            }
+
+            #twitterStyled .twitter-container {
+                width: 900px;
+            }
+
+            .footer {
+                display: none;
+            }
+
+            #twitterStyled .tweet {
+                padding: 6px 10px 6px 65px;
+                overflow: hidden;
+                height: 48px;
+            }
+
+            #twitterStyled .tweet:last-child {
+                border-bottom: 1px none;
+            }
+
+            #twitterStyled .p-name {
+                color: darkgrey;
+                opacity: 0.3;
+            }
+
+            #twitterStyled .p-nickname {
+                color: darkgrey;
+                opacity: 0.3;
+            }
+
+        </style>
+
+        <a class="twitter-timeline"  href="https://twitter.com/RedRage3d"  data-widget-id="584051127311794177" data-tweet-limit="2" data-chrome="noheader nofooter" ></a>
+    </div>
+    <!--Twitter widget end-->
+
+
+<script type="text/javascript">
+
+    $(document).ready(function() {
+
+        //twitter
+        $('a').css({"font-size": "11px", "font-family": "tahoma"});
+        !function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+"://platform.twitter.com/widgets.js";fjs.parentNode.insertBefore(js,fjs);}}(document,"script","twitter-wjs");
+        $(function () {
+            var $cont = $(".twitter-container"),
+                    prd = setInterval(function () {
+                        if ($cont.find("> iframe").contents().find(".twitter-timeline").length > 0) {
+                            var $body = $cont.find("> iframe").contents().find("body");
+                            clearInterval(prd)
+                            $body.attr("id", "twitterStyled")
+                                    .append($("#twitterStyle"));
+                            $('#twitter-widget-0').css("width", "1000px");
+
+                        }
+                    }, 100);
+        });
+        //VK.Widgets.Like('vk_like', {width: 500, pageTitle: 'Статья номер 321', pageDescription: 'Описание статьи номер 321'}, 321);
+    });
+</script>
 </body>
 </html>

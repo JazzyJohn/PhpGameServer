@@ -10,22 +10,20 @@
 class DaylyReward{
 
     public static $array_date = array(
-       /* array(
+        array(
             "type"=>"HOLIDAY",
-            "date"=>"09.05.2015",
+            "date"=>"07.05.2015",
+            "dateEnd"=>"10.05.2015",
+            "text"=> "Комрад С Днем Победы!\n\n В Честь этого великого праздника, командования снабдило тебя особым вооружением.\nС 9 Мая!",
             "reward"=>array(
-                array(
-                    "type"=>"MONEY",
-                    "cash"=>1000,
-                    "gold"=>1
-                ),
+
                 array(
                     "type"=>"ITEM",
-                    "item"=>33,
+                    "item"=>75,
                     "itemtype"=>"FOR_KP"
                 )
             )
-        ),
+        )/*,
         array(
             "type"=>"DAYENTER",
             "dayEnter"=>2,
@@ -59,6 +57,12 @@ class DaylyReward{
         $this->user =$user;
         $this->uid =$uid;
     }
+    private function isInPeriod($date1,$date2,$actualDate){
+       $time_start =  strtotime("00:00:00 ".$date1);
+       $time_end =  strtotime("23:59:59 ".$date2);
+        $time =  strtotime("12:00:00 ".$actualDate);
+       return $time_start<$time&&$time<$time_end;
+    }
 
     public function resolved(){
         $today = date("d.m.Y");
@@ -72,16 +76,21 @@ class DaylyReward{
         foreach(self::$array_date as $element){
             switch($element["type"]){
                 case "HOLIDAY":
-                    if(($lastvisit!=$today||$this->user==false)&&$today==$element["date"]){
-                           self::resolve_reward($element['reward']);
-                            $notify[] = array("type"=>"dayReward","params"=>$element["notify"]);
+                    if((!$this->isInPeriod($element["date"],$element["dateEnd"],$lastvisit)||$this->user==false)&&$this->isInPeriod($element["date"],$element["dateEnd"],$today)){
+                           $item  = $this->resolve_reward($element['reward']);
+                            if($item==null){
+                                $notify[] = array("type"=>"HOLIDAY","ass_params"=>array("text"=>$element["text"]));
+                            }else{
+                                $notify[] = array("type"=>"HOLIDAY","ass_params"=>array("text"=>$element["text"],"item"=>$item));
+                            }
+
                     }
                     break;
                 case  'DAYENTER':
                     if($this->yesturday()&&$this->user["dayEnter"]+1==$element["dayEnter"]){
 
-                        $notify[] = array("type"=>"dayReward","params"=>$element["notify"]);
-                        self::resolve_reward($element['reward']);
+                        $notify[] = array("type"=>"DAYREWARD","params"=>$element["notify"]);
+                        $this->resolve_reward($element['reward']);
                     }
                     break;
 
@@ -125,7 +134,7 @@ class DaylyReward{
     }
     private function resolve_reward($reward){
         $db = DBHolder::GetDB();
-
+        $item = null;
         foreach($reward as $element){
             switch($element["type"]){
                 case 'MONEY':
@@ -133,11 +142,18 @@ class DaylyReward{
                     $db->query($sql);
                     break;
                 case 'ITEM':
-                    $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$this->user['uid'].'","'.$element["item"].'","'.$element["itemtype"].'")';
+                    if($this->user==false){
+                        $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$this->uid.'","'.NEWBIE_PISTOL.'","FOR_KP")';
+                        $db->query($sql);
+
+                    }
+                    $sql = ' INSERT INTO `game_items_players`  (`uid`,`item_id`,`buytype`) VALUES ("'.$this->uid.'","'.$element["item"].'","'.$element["itemtype"].'")';
+                    $item=$element["item"];
                     $db->query($sql);
                     break;
             }
         }
+        return $item;
     }
 
 

@@ -1,4 +1,4 @@
-86835<?php
+<?php
 /**
  * Created by PhpStorm.
  * User: Ivan.Ochincenko
@@ -46,6 +46,7 @@ define("AUTH_PATH" , 'https://oauth.vk.com/access_token?client_id=4596119&client
 define("API_ID","4596119");
 define("SECRET_KEY","bfCO9rlWzGzxtB6S8SZ6");
 define("UNITY_KEY","redrageawesome");
+define("SESSION_KEY","sesskey123");
 
 define("EVERUDAY_ACHIV","17");
 define("LOCAL_ADDR","37.252.125.102");
@@ -54,11 +55,13 @@ define("NEWBIE_PISTOL","1");
 
 define("GOLD_PRICE_1_DAYS","1");
 define("GOLD_PRICE_2_DAYS","3");
-define("GOLD_PRICE_3_DAYS","5");
+define("GOLD_PRICE_3_DAYS","7");
 
 define("SKILL_PRICE_1_DAYS","1");
 define("SKILL_PRICE_2_DAYS","3");
 define("SKILL_PRICE_3_DAYS","30");
+
+define("RESET_SKILL_PRICE","70");
 
 
 define("FINISH_TASK_COST",20);
@@ -79,3 +82,8 @@ define("NEW_TASK_MESSAGE","Солдат! Задача выполнена. Яви
 define("OLD_TASK_MESSAGE","Солдат! Задача не выполнена. Выдвигайтесь на фронт для выполнения задачи.");
 define("VIRAL_CASH",0);
 define("VIRAL_GOLD",100);
+
+define("LOTERY_COST",35);
+define("LOTERY_FREE",2);
+
+define("SOCIAL_KIT",5);

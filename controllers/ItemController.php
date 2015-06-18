@@ -77,17 +77,20 @@ class ItemController extends BaseController{
             foreach($settings as $class){
 
                 foreach($class as $element){
-                    $wepOne   = new SimpleXMLElement('<default></default>');
-                    $wepOne->addChild("gameClass",$element["class"]);
-                    $wepOne->addChild("weaponId",$element["weaponId"]);
-                    if(isset($element["set"])){
-                         $wepOne->addChild("set",$element["set"]);
-                    }else{
-                        $wepOne->addChild("set",0);
+                    if(isset($element["slot"])){
+                        $wepOne   = new SimpleXMLElement('<default></default>');
+                        $wepOne->addChild("gameClass",$element["class"]);
+                        $wepOne->addChild("weaponId",$element["weaponId"]);
+                        if(isset($element["set"])){
+                             $wepOne->addChild("set",$element["set"]);
+                        }else{
+                            $wepOne->addChild("set",0);
+                        }
+                        $wepOne->addChild("slot",$element["slot"]);
+                        $domone  = dom_import_simplexml($wepOne);
+                        $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
+                        $domitems->appendChild($domone);
                     }
-                    $domone  = dom_import_simplexml($wepOne);
-                    $domone  = $domitems->ownerDocument->importNode($domone, TRUE);
-                    $domitems->appendChild($domone);
                 }
             }
             $marked = json_decode(stripslashes($sqldata[0]["mark_game_id"]),true);
@@ -207,8 +210,8 @@ class ItemController extends BaseController{
             if($element==-1){
                 continue;
             }
-            $tar = explode("@set",$element);
-            $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$tar[0],"set"=>$tar[1]);
+            $tar = explode("@",$element);
+            $settings[$data["class"]][] = array("class"=>$data["class"],"weaponId"=>$tar[0],"set"=>$tar[1],"slot"=>$tar[2]);
         }
         $data["robotclass"]+=5;
         if( isset($settings[$data["robotclass"]])){
@@ -248,6 +251,7 @@ class ItemController extends BaseController{
             }
 
         }
+        $events = new ShopEvents();
 
         $sql = 'SELECT * FROM `game_items_dictionary` AS dic
                             LEFT JOIN `game_items_players` AS fact ON (dic.id = fact.item_id AND fact.uid= "'.$uid.'")
@@ -257,10 +261,11 @@ class ItemController extends BaseController{
         $dominv = dom_import_simplexml($xml->inventory);
         foreach($sqldata as $element){
 
-
+            $prices[$element['id']] =$events->checkItem($element,$prices[$element['id']]);
             $itemOne   = new SimpleXMLElement('<item></item>');
             $itemOne->addChild("id",$element['id']);
             $itemOne->addChild("class",$element['class']);
+            $itemOne->addChild("isEvented",isset($element["isEvented"])?$element["isEvented"]:"false");
             $itemOne->addChild("type",$element['type']);
             $itemOne->addChild("ingame_type",$element['ingame_type']);
             $itemOne->addChild("ingame_mysqlid",$element['ingame_mysqlid']);
@@ -295,6 +300,7 @@ class ItemController extends BaseController{
                 $itemOne->addChild("mods",$element['mods']);
             }
             $domone  = dom_import_simplexml($itemOne);
+
             if(isset($prices[$element['id']]["single"])){
                 foreach($prices[$element['id']]["single"] as $price ){
                     $priceXml   = new SimpleXMLElement('<price></price>');
@@ -302,6 +308,10 @@ class ItemController extends BaseController{
                     $priceXml->addChild("id",$price["id"]);
                     $priceXml->addChild("amount",$price["amount"]);
                     $dprice  = dom_import_simplexml($priceXml);
+                    if(isset($price["discount"])){
+                        $priceXml->addChild("discount",$price["discount"]);
+                        $priceXml->addChild("discountEnd",$price["discountEnd"]);
+                    }
                     $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);
                     $domone->appendChild($dprice);
                 }
@@ -313,6 +323,10 @@ class ItemController extends BaseController{
                         $priceXml->addChild("type",$price["type"]);
                         $priceXml->addChild("amount",$price["amount"]);
                         $priceXml->addChild("id",$price["id"]);
+                    }
+                    if(isset($group["discount"])){
+                        $priceXml->addChild("discount",$group["discount"]);
+                        $priceXml->addChild("discountEnd",$group["discountEnd"]);
                     }
                     $dprice  = dom_import_simplexml($priceXml);
                     $dprice  = $domone->ownerDocument->importNode($dprice, TRUE);
@@ -328,6 +342,55 @@ class ItemController extends BaseController{
 
         }
 
+        $sql = 'SELECT * FROM `game_items_kit`';
+        $sqldata =$db->fletch_assoc($db->query($sql));
+        foreach($sqldata as $element){
+
+
+            $itemOne   = new SimpleXMLElement('<itemKit></itemKit>');
+            $itemOne->addChild("id",$element['id']);
+            $itemOne->addChild("name",$element['name']);
+            $itemOne->addChild("goldPrice",$element['goldPrice']);
+            $end = 0;
+            $itemOne->addChild("discount",$events->getKitDiscount($element['id'],$end));
+            $itemOne->addChild("discountEnd",$end);
+            $money = explode(",",$element['money']);
+            foreach($money as $coin){
+                if($coin!=""){
+                    $itemOne->addChild("money",$coin);
+                }
+            }
+            $domone  = dom_import_simplexml($itemOne);
+
+            $data =json_decode($element["items"],true);
+            foreach($data as $item){
+                $itemXmlOne   = new SimpleXMLElement('<item></item>');
+                $itemXmlOne->addChild("days",$item["days"]);
+                $itemXmlOne->addChild("id",$item["id"]);
+
+                $ditemOne  = dom_import_simplexml($itemXmlOne);
+
+                $ditemOne  = $domone->ownerDocument->importNode($ditemOne, TRUE);
+                $domone->appendChild($ditemOne);
+            }
+            $data =json_decode($element["skills"],true);
+            foreach($data as $item){
+                $itemXmlOne   = new SimpleXMLElement('<skill></skill>');
+                $itemXmlOne->addChild("days",$item["days"]);
+                $itemXmlOne->addChild("id",$item["id"]);
+
+                $ditemOne  = dom_import_simplexml($itemXmlOne);
+
+                $ditemOne  = $domone->ownerDocument->importNode($ditemOne, TRUE);
+                $domone->appendChild($ditemOne);
+            }
+
+            $domone  = $dominv->ownerDocument->importNode($domone, TRUE);
+            $dominv->appendChild($domone);
+
+
+
+        }
     }
     public static function parseChar($xmlitems, $str){
 
